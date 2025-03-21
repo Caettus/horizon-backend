@@ -12,10 +12,11 @@ on:
       - main
       - develop
   workflow_dispatch:
-
+  
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/${{ github.repository }}/userservice
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/horizon-backend/userservice
+
 
 jobs:
   build-and-test:
