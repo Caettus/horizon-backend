@@ -31,11 +31,15 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
+        with:
+          working-directory: ./userservice  # <-- Hier geef je de juiste folder aan!
 
       - name: Build without tests
+        working-directory: ./userservice  # <-- Hier ook de juiste folder!
         run: ./gradlew clean build -x test --no-daemon
 
       - name: Run Unit Tests
+        working-directory: ./userservice
         run: ./gradlew test --no-daemon
 
   security-checks:
@@ -68,48 +72,7 @@ jobs:
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
       - name: Build Docker Image
-        run: docker build -t ${{ env.IMAGE_NAME }}:latest ./userservice
+        run: docker build -t ${{ env.IMAGE_NAME }}:latest ./userservice  # <-- Hier ook de juiste folder
 
       - name: Push Docker Image
         run: docker push ${{ env.IMAGE_NAME }}:latest
-
-#   deploy-staging:
-#     name: Deploy to Staging
-#     runs-on: ubuntu-latest
-#     needs: docker-build
-#     steps:
-#       - name: SSH into Staging Server
-#         uses: appleboy/ssh-action@master
-#         with:
-#           host: ${{ secrets.STAGING_HOST }}
-#           username: ${{ secrets.STAGING_USER }}
-#           key: ${{ secrets.STAGING_SSH_KEY }}
-#           script: |
-#             docker pull ${{ env.IMAGE_NAME }}:latest
-#             docker-compose up -d --force-recreate
-
-#   e2e-tests:
-#     name: End-to-End Testing
-#     runs-on: ubuntu-latest
-#     needs: deploy-staging
-#     steps:
-#       - name: Run API Tests
-#         uses: matt-ball/newman-action@v1
-#         with:
-#           collection: postman-collection.json
-#           environment: postman-environment.json
-
-#   deploy-production:
-#     name: Deploy to Production
-#     runs-on: ubuntu-latest
-#     needs: e2e-tests
-#     steps:
-#       - name: SSH into Production Server
-#         uses: appleboy/ssh-action@master
-#         with:
-#           host: ${{ secrets.PROD_HOST }}
-#           username: ${{ secrets.PROD_USER }}
-#           key: ${{ secrets.PROD_SSH_KEY }}
-#           script: |
-#             docker pull ${{ env.IMAGE_NAME }}:latest
-#             docker-compose up -d --force-recreate
