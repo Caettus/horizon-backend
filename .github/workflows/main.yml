@@ -54,7 +54,12 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: java
-          source-root: userservice/src
+          build-mode: manual
+
+      - name: Build project for CodeQL
+        run: |
+          cd userservice
+          ./gradlew clean build -x test --no-daemon
 
       - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
@@ -63,8 +68,9 @@ jobs:
           format: "HTML"
           output: "reports"
 
-      - name: Run SAST (CodeQL)
+      - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
+
 
 
 
