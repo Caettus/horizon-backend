@@ -246,3 +246,10 @@ gradle-app.setting
 *.hprof
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,intellij,windows,java,macos,gradle
+.idea/vcs.xml
+.idea/modules/userservice.test.iml
+.idea/modules/userservice.main.iml
+.idea/modules.xml
+.idea/misc.xml
+.idea/material_theme_project_new.xml
+.idea/horizon-backend.iml
