@@ -15,7 +15,7 @@ on:
   
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/horizon-backend/userservice
+  IMAGE_NAME: ghcr.io/caettus/horizon-backend/userservice
 
 
 jobs:
