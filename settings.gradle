@@ -1,0 +1,4 @@
+rootProject.name = 'horizon-backend'
+
+// Include each microservice as a submodule by folder name:
+include 'userservice', 'eventservice', 'notificationservice'
