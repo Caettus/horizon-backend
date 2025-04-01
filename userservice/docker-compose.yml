@@ -13,6 +13,8 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       retries: 5
+    networks:
+      - backend
 
   userservice:
     build:
@@ -21,6 +23,8 @@ services:
     container_name: userservice
     ports:
       - "8081:8080"
+    networks:
+      - backend
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/userservice_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
@@ -30,4 +34,8 @@ services:
         condition: service_healthy
 
 volumes:
-  my-db-volume: {}  # <-- Dit is wat ontbrak!
+  my-db-volume: {}
+
+networks:
+  backend:
+    external: true
