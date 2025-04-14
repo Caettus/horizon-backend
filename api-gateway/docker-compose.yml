@@ -11,4 +11,4 @@ services:
 
 networks:
   backend:
-    external: true
+    external: false
