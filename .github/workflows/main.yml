@@ -1,7 +1,5 @@
 name: CI/CD Pipeline
 
-#need to try it again.
-
 on:
   push:
     branches:
@@ -40,10 +38,17 @@ jobs:
           cd userservice
           ./gradlew clean build -x test --no-daemon
 
-      - name: Run Unit Tests
+      - name: Run Unit + Integration Tests (test profile)
         run: |
           cd userservice
-          ./gradlew test --no-daemon
+          ./gradlew test -Dspring.profiles.active=test --no-daemon
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: userservice/build/reports/tests/test
 
   security-checks:
     name: Security & Code Quality

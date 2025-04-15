@@ -3,6 +3,8 @@ package com.horizon.userservice.model;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -20,6 +22,12 @@ public class User {
 
     @Column(name = "age")
     private String age;
+
+    @Column(name = "password")
+    private String password;
+
+    @Column(name= "createdAt")
+    private LocalDateTime createdAt;
 
     public int getId() {
         return id;
@@ -51,5 +59,19 @@ public class User {
 
     public void setAge(String age) {
         this.age = age;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }
