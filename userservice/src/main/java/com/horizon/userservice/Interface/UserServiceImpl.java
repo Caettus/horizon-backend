@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
         user.setAge(dto.getAge());
-        user.setPassword(dto.getPassword()); // hash dit later!
+        user.setPassword(dto.getPassword()); // TODO: hash dit later!
         user.setCreatedAt(LocalDateTime.now());
         return mapToResponseDTO(userDAL.save(user));
     }

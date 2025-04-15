@@ -1,14 +1,12 @@
 package com.horizon.userservice.controller;
 
 import com.horizon.userservice.DTO.UserCreateDTO;
-import com.horizon.userservice.DTO.UserDTO;
 import com.horizon.userservice.DTO.UserResponseDTO;
 import com.horizon.userservice.DTO.UserUpdateDTO;
 import com.horizon.userservice.Interface.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
