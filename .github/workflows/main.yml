@@ -83,11 +83,16 @@ jobs:
           output: "reports"
 
       # ---------- Snyk ----------
-      - name: Run Snyk for dependency vulnerability scanning
-        uses: snyk/actions/gradle-jdk21@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Auth with Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      - name: Run Snyk for dependency scan (userservice)
+        run: |
+          cd userservice
+          snyk test --all-projects || true
 
       # ---------- Semgrep ----------
       - name: Run Semgrep for static analysis
