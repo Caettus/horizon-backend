@@ -105,6 +105,8 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@v2
         with:
           projectBaseDir: userservice
+          organization: Caettus
+          projectKey: horizon-backend
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
