@@ -59,7 +59,7 @@ jobs:
 
       # ---------- CodeQL ----------
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: java
           build-mode: manual
@@ -70,7 +70,7 @@ jobs:
           ./gradlew clean build -x test --no-daemon
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
         with:
           upload: false
 
@@ -96,7 +96,7 @@ jobs:
 
       # ---------- Semgrep ----------
       - name: Run Semgrep for static analysis
-        uses: returntocorp/semgrep-action@v1
+        uses: returntocorp/semgrep-action@v2
         with:
           config: "auto"
 
