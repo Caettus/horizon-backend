@@ -10,11 +10,10 @@ on:
       - main
       - develop
   workflow_dispatch:
-  
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ghcr.io/caettus/horizon-backend/userservice
-
 
 jobs:
   build-and-test:
@@ -50,7 +49,7 @@ jobs:
           name: test-report
           path: userservice/build/reports/tests/test
 
-  security-checks:
+  security-and-quality:
     name: Security & Code Quality
     runs-on: ubuntu-latest
     needs: build-and-test
@@ -58,17 +57,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # ---------- CodeQL ----------
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: java
-          build-mode: manual  
+          build-mode: manual
 
       - name: Build project for CodeQL
         run: |
           cd userservice
           ./gradlew clean build -x test --no-daemon
 
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          upload: false
+
+      # ---------- OWASP Dependency Check ----------
       - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
@@ -76,18 +82,31 @@ jobs:
           format: "HTML"
           output: "reports"
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+      # ---------- Snyk ----------
+      - name: Run Snyk for dependency vulnerability scanning
+        uses: snyk/actions/gradle-jdk21@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      # ---------- Semgrep ----------
+      - name: Run Semgrep for static analysis
+        uses: returntocorp/semgrep-action@v1
         with:
-          upload: false  # Since code security alerts are only available for organizations.....we have to turn this off.
+          config: "auto"
 
+      # ---------- SonarCloud ----------
+      - name: Run SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          projectBaseDir: userservice
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-
-
-  docker-build:
-    name: Docker Build & Push
+  docker-and-scan:
+    name: Docker Build & Scan & Push
     runs-on: ubuntu-latest
-    needs: security-checks
+    needs: security-and-quality
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -97,6 +116,13 @@ jobs:
 
       - name: Build Docker Image
         run: docker build -t ${{ env.IMAGE_NAME }}:latest ./userservice
+
+      # ---------- Trivy Scan ----------
+      - name: Run Trivy to scan Docker image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:latest
+          format: 'table'
 
       - name: Push Docker Image
         run: docker push ${{ env.IMAGE_NAME }}:latest
