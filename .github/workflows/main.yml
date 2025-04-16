@@ -96,7 +96,7 @@ jobs:
 
       # ---------- Semgrep ----------
       - name: Run Semgrep for static analysis
-        uses: returntocorp/semgrep-action@v2
+        uses: returntocorp/semgrep-action@v1.118.0
         with:
           config: "auto"
 
