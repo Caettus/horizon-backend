@@ -105,10 +105,10 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@v2
         with:
           projectBaseDir: userservice
-          organization: Caettus
-          projectKey: horizon-backend
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: caettus_horizon-backend
+          SONAR_ORGANIZATION: caettus
 
   docker-and-scan:
     name: Docker Build & Scan & Push
