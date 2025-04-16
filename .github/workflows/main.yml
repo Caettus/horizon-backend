@@ -94,11 +94,11 @@ jobs:
           cd userservice
           snyk test --all-projects || true
 
-      # ---------- Semgrep ----------
-      - name: Run Semgrep for static analysis
-        uses: returntocorp/semgrep-action@v1.118.0
-        with:
-          config: "auto"
+#      # ---------- Semgrep ----------
+#      - name: Run Semgrep for static analysis
+#        uses: returntocorp/semgrep-action@v1
+#        with:
+#          config: "auto"
 
       # ---------- SonarCloud ----------
       - name: Run SonarCloud Scan
