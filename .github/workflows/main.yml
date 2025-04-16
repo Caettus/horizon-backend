@@ -102,13 +102,9 @@ jobs:
 
       # ---------- SonarCloud ----------
       - name: Run SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
-        with:
-          projectBaseDir: userservice
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_PROJECT_KEY: caettus_horizon-backend
-          SONAR_ORGANIZATION: caettus
+        run: |
+          cd userservice
+          ./gradlew sonarqube -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
   docker-and-scan:
     name: Docker Build & Scan & Push
