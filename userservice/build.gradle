@@ -41,7 +41,7 @@ dependencies {
 
 sonar {
     properties {
-        property "sonar.projectKey", "caettus_horizon-backend"
+        property "sonar.projectKey", "horizon-backend"
         property "sonar.organization", "caettus"
         property "sonar.host.url", "https://sonarcloud.io"
     }
