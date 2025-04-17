@@ -9,8 +9,10 @@ import com.horizon.eventservice.DTO.EventUpdateDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class EventService {
@@ -20,6 +22,14 @@ public class EventService {
 
     public Optional<EventResponseDTO> getEventById(UUID id) {
         return eventDAL.findById(id).map(this::mapToDTO);
+    }
+
+
+
+    public List<EventResponseDTO> getAllEvents() {
+        return eventDAL.findAll().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     public Event createEvent(EventCreateDTO createDTO) {
