@@ -43,6 +43,7 @@ public class EventService {
         event.setTags(createDTO.getTags());
         event.setPrivate(createDTO.isPrivate());
         event.setOrganizerId(createDTO.getOrganizerId());
+        event.setImageUrl(createDTO.getImageUrl());
         event.setStatus(Event.EventStatus.UPCOMING);
         event.setCreatedAt(java.time.LocalDateTime.now());
         return eventDAL.save(event);

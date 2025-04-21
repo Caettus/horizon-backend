@@ -41,6 +41,8 @@ public class Event {
     @ElementCollection
     private List<UUID> waitlist; // misschien handig idk we zullen zien
 
+    private String imageUrl;
+
     private String category;
 
     @ElementCollection
@@ -105,6 +107,9 @@ public class Event {
 
     public UUID getOrganizerId() { return organizerId; }
     public void setOrganizerId(UUID organizerId) { this.organizerId = organizerId; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
     public OrganizerType getOrganizerType() { return organizerType; }
     public void setOrganizerType(OrganizerType organizerType) { this.organizerType = organizerType; }

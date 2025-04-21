@@ -14,6 +14,7 @@ public class EventCreateDTO {
     private List<String> tags;
     private boolean isPrivate;
     private UUID organizerId;
+    private String imageUrl;
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -41,4 +42,7 @@ public class EventCreateDTO {
 
     public UUID getOrganizerId() { return organizerId; }
     public void setOrganizerId(UUID organizerId) { this.organizerId = organizerId; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

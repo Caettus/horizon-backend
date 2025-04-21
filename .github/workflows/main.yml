@@ -81,6 +81,7 @@ jobs:
           project: "userservice"
           format: "HTML"
           output: "reports"
+          path: ''
 
       # ---------- Snyk ----------
       - name: Install Snyk CLI
