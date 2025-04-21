@@ -29,6 +29,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-event:3306/eventservice_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: superSecret
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+
     depends_on:
       mysql-event:
         condition: service_healthy

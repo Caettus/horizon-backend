@@ -4,3 +4,5 @@ include 'userservice'
 include 'eventservice'
 include 'notificationservice'
 include 'api-gateway'
+include 'eventbus'
+
