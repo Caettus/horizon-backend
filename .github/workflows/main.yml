@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  ORG_REPO_PATH: caettus/horizon-backend   # edit once, used everywhere
+  ORG_REPO_PATH: caettus/horizon-backend
 
 # ─────────────────────────────────────────────────────────────
 # 1. BUILD & TEST  (matrix over every service folder)
@@ -20,7 +20,23 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [userservice, eventservice]   # <<< add more here later
+        service: [userservice, eventservice]
+
+    services:
+      rabbitmq:
+        image: rabbitmq:3.13-management
+        ports:
+          - 5672:5672
+          - 15672:15672
+        env:
+          RABBITMQ_DEFAULT_USER: guest
+          RABBITMQ_DEFAULT_PASS: guest
+        # health‑check so the job waits until the broker is ready
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v3
@@ -60,7 +76,7 @@ jobs:
           path: ${{ matrix.service }}/build/reports/tests/test
 
   # ─────────────────────────────────────────────────────────────
-  # 2. SECURITY & CODE‑QUALITY (still per‑service)
+  # 2. SECURITY & CODE‑QUALITY
   # ─────────────────────────────────────────────────────────────
   security-and-quality:
     name: Security & Code Quality – ${{ matrix.service }}
@@ -112,7 +128,7 @@ jobs:
           snyk test --all-projects || true   # never fail the pipeline
 
   # ─────────────────────────────────────────────────────────────
-  # 3. SONARCLOUD (one combined run – root build)
+  # 3. SONARCLOUD
   # ─────────────────────────────────────────────────────────────
   sonarcloud:
     name: SonarCloud Analysis (root build)
