@@ -1,4 +1,4 @@
-package com.horizon.userservice.eventbus;
+package com.horizon.eventservice.eventbus;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,7 +10,7 @@ import java.util.UUID;
 /**
  * Message die wordt gepubliceerd wanneer een nieuwe Event is aangemaakt.
  */
-public class EventCreatedEvent implements Serializable {
+public class EventCreatedMessage implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private final UUID id;
@@ -19,7 +19,7 @@ public class EventCreatedEvent implements Serializable {
     private final LocalDateTime createdAt;
 
     @JsonCreator
-    public EventCreatedEvent(
+    public EventCreatedMessage(
             @JsonProperty("id") UUID id,
             @JsonProperty("title") String title,
             @JsonProperty("startDate") LocalDateTime startDate,
@@ -49,7 +49,7 @@ public class EventCreatedEvent implements Serializable {
 
     @Override
     public String toString() {
-        return "EventCreatedEvent{" +
+        return "EventCreatedMessage{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", startDate=" + startDate +

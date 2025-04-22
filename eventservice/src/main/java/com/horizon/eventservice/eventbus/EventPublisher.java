@@ -13,7 +13,7 @@ public class EventPublisher {
     }
 
     public void publishEventCreated(Event event) {
-        EventCreatedEvent message = new EventCreatedEvent(
+        EventCreatedMessage message = new EventCreatedMessage(
                 event.getId(), event.getTitle(), event.getStartDate(), event.getCreatedAt()
         );
         rabbitTemplate.convertAndSend(
