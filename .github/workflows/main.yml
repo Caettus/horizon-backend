@@ -55,6 +55,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Debug Directory Structure
+        run: ls -R ${{ matrix.service }}
+
+      - name: Verify Gradle Wrapper Permissions
+        run: ls -l ${{ matrix.service }}/gradlew
+
       - name: Give execute permission to Gradle wrapper
         run: chmod +x ${{ matrix.service }}/gradlew
 
