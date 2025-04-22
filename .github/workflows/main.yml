@@ -107,6 +107,8 @@ jobs:
           ./gradlew clean build -x test sonarqube --warning-mode all --stacktrace --info \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.organization=caettus \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.projectKey=Caettus_horizon-backend \
             -Dsonar.gradle.skipCompile=true \
             --no-daemon
 
