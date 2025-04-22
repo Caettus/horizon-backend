@@ -102,10 +102,15 @@ jobs:
 #          config: "auto"
 
       # ---------- SonarCloud ----------
-      - name: Run SonarCloud Scan
-        run: |
-          cd userservice
-          ./gradlew sonarqube -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@v1.10
+        with:
+          organization: Caettus
+          projectKey: Caettus_horizon-backend
+          projectName: horizon-backend
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
 
   docker-and-scan:
     name: Docker Build & Scan & Push
