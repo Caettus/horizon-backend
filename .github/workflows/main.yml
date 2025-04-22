@@ -103,7 +103,7 @@ jobs:
 
       # ---------- SonarCloud ----------
       - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@v1.10
+        uses: sonarsource/sonarcloud-github-action@v5
         with:
           organization: Caettus
           projectKey: Caettus_horizon-backend
