@@ -104,7 +104,7 @@ jobs:
     # ---------- SonarCloud ----------
       - name: Run SonarQube analysis
         run: |
-          ./gradlew clean build -x test sonarqube --warning-mode all --stacktrace \
+          ./gradlew clean build -x test sonarqube --warning-mode all --stacktrace --info \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.organization=caettus \
             -Dsonar.gradle.skipCompile=true \
