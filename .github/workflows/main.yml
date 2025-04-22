@@ -101,15 +101,20 @@ jobs:
 #        with:
 #          config: "auto"
 
-      # ---------- SonarCloud ----------
+    # ---------- SonarCloud ----------
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@v5
         with:
-          organization: Caettus
-          projectKey: Caettus_horizon-backend
-          projectName: horizon-backend
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          projectBaseDir: userservice
+          args: |
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.projectKey=Caettus_horizon-backend
+            -Dsonar.organization=Caettus
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.sources=.
+            -Dsonar.java.binaries=build/classes/java/main
+            -Dsonar.gradle.skipCompile=true
+
 
 
   docker-and-scan:
