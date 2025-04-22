@@ -11,18 +11,26 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.RabbitMQContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+
+@Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureTestDatabase(replace = Replace.ANY)
@@ -34,6 +42,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @Transactional
 public class EventsControllerIntegrationTest {
+
+    @Container
+    static RabbitMQContainer rabbit = new RabbitMQContainer("rabbitmq:3.13-management")
+            .withUser("guest", "guest", Set.of("administrator"))
+            .withPluginsEnabled("rabbitmq_management");
+
+
+    @DynamicPropertySource
+    static void registerRabbitProps(DynamicPropertyRegistry reg) {
+        reg.add("spring.rabbitmq.host",    rabbit::getHost);
+        reg.add("spring.rabbitmq.port",    rabbit::getAmqpPort);
+        reg.add("spring.rabbitmq.username",() -> "guest");
+        reg.add("spring.rabbitmq.password",() -> "guest");
+    }
 
     @Autowired
     private MockMvc mockMvc;

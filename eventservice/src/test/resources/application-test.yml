@@ -4,6 +4,14 @@ spring:
     driverClassName: org.h2.Driver
     username: sa
     password:
+  rabbitmq:
+    listener:
+      simple:
+        auto-startup: false
+    host: 127.0.0.1   # het is erg laat dus ik hoop dat dit goed is
+    port: 5672
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
   jpa:
     hibernate:
       ddl-auto: create-drop
