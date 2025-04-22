@@ -133,6 +133,9 @@ jobs:
           cd ${{ matrix.service }}
           snyk test --all-projects || true   # never fail the pipeline
 
+      - name: Make root gradlew executable
+        run: chmod +x gradlew
+
   # ─────────────────────────────────────────────────────────────
   # 3. SONARCLOUD
   # ─────────────────────────────────────────────────────────────
