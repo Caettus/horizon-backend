@@ -3,7 +3,6 @@ plugins {
 }
 
 subprojects {
-    apply plugin: "org.sonarqube"
     sonar {
         properties {
             property "sonar.projectKey",       "Caettus_horizon-backend"

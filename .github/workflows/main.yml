@@ -106,7 +106,7 @@ jobs:
         run: |
           ./gradlew clean build -x test sonarqube --warning-mode all --stacktrace \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.organization=Caettus \
+            -Dsonar.organization=caettus \
             -Dsonar.gradle.skipCompile=true \
             --no-daemon
 
