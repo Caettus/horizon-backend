@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: nginx:1.14.2
+          image: mysql:9.3.0
           ports:
             - containerPort: 80

@@ -4,4 +4,5 @@ include 'userservice'
 include 'eventservice'
 include 'api-gateway'
 include 'eventbus'
+include 'rsvpservice'
 

@@ -1,0 +1,74 @@
+package com.horizon.rsvpservice.controller;
+
+import com.horizon.rsvpservice.model.Rsvp;
+import com.horizon.rsvpservice.model.RsvpStatus;
+import com.horizon.rsvpservice.service.RsvpService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/rsvps")
+@RequiredArgsConstructor
+public class RsvpController {
+    private final RsvpService rsvpService;
+
+    @PostMapping
+    public ResponseEntity<Rsvp> createRsvp(
+            @RequestParam Long eventId,
+            @RequestParam Long userId,
+            @RequestParam RsvpStatus status) {
+        return ResponseEntity.ok(rsvpService.createRsvp(eventId, userId, status));
+    }
+
+    @PutMapping("/{rsvpId}")
+    public ResponseEntity<Rsvp> updateRsvp(
+            @PathVariable Long rsvpId,
+            @RequestParam RsvpStatus status) {
+        return ResponseEntity.ok(rsvpService.updateRsvp(rsvpId, status));
+    }
+
+    @DeleteMapping("/{rsvpId}")
+    public ResponseEntity<Void> deleteRsvp(@PathVariable Long rsvpId) {
+        rsvpService.deleteRsvp(rsvpId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{rsvpId}")
+    public ResponseEntity<Rsvp> getRsvp(@PathVariable Long rsvpId) {
+        return ResponseEntity.ok(rsvpService.getRsvp(rsvpId));
+    }
+
+    @GetMapping("/event/{eventId}")
+    public ResponseEntity<List<Rsvp>> getRsvpsByEvent(@PathVariable Long eventId) {
+        return ResponseEntity.ok(rsvpService.getRsvpsByEvent(eventId));
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Rsvp>> getRsvpsByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(rsvpService.getRsvpsByUser(userId));
+    }
+
+    @GetMapping("/event/{eventId}/user/{userId}")
+    public ResponseEntity<Rsvp> getRsvpByEventAndUser(
+            @PathVariable Long eventId,
+            @PathVariable Long userId) {
+        return ResponseEntity.ok(rsvpService.getRsvpByEventAndUser(eventId, userId));
+    }
+
+    @GetMapping("/event/{eventId}/status/{status}")
+    public ResponseEntity<List<Rsvp>> getRsvpsByEventAndStatus(
+            @PathVariable Long eventId,
+            @PathVariable RsvpStatus status) {
+        return ResponseEntity.ok(rsvpService.getRsvpsByEventAndStatus(eventId, status));
+    }
+
+    @GetMapping("/event/{eventId}/status/{status}/count")
+    public ResponseEntity<Long> countRsvpsByEventAndStatus(
+            @PathVariable Long eventId,
+            @PathVariable RsvpStatus status) {
+        return ResponseEntity.ok(rsvpService.countRsvpsByEventAndStatus(eventId, status));
+    }
+} 
