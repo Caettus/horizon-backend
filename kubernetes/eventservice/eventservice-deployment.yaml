@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql-eventservice-deployment
+  name: eventservice-deployment
   labels:
-    app: mysql-eventservice
+    app: eventservice
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mysql-eventservice
+      app: eventservice
   template:
     metadata:
       labels:
-        app: mysql-eventservice
+        app: eventservice
     spec:
       containers:
         - name: mysql

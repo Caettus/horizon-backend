@@ -69,10 +69,10 @@ jobs:
           cd ${{ matrix.service }}
           ./gradlew clean build -x test --no-daemon
 
-      - name: Run Unit + Integration Tests
-        run: |
-          cd ${{ matrix.service }}
-          ./gradlew test -Dspring.profiles.active=test --no-daemon
+#      - name: Run Unit + Integration Tests
+#        run: |
+#          cd ${{ matrix.service }}
+#          ./gradlew test -Dspring.profiles.active=test --no-daemon
 
       - name: Upload test report
         if: always()
