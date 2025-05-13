@@ -15,7 +15,29 @@ spec:
         app: eventservice
     spec:
       containers:
-        - name: mysql
-          image: mysql:9.3.0
+        - name: eventservice
+          image: ghcr.io/caettus/horizon-backend/eventservice:latest
           ports:
-            - containerPort: 3306
+            - containerPort: 8082
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-eventservice-config
+                  key: mysql-url
+            - name: SPRING_DATASOURCE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-eventservice-secret
+                  key: mysql-eventservice-username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-eventservice-secret
+                  key: mysql-eventservice-password
+            - name: SPRING_SECURITY_USER_NAME
+              value: "root"
+            - name: SPRING_SECURITY_USER_PASSWORD
+              value: "superSecret"
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
+              value: "DEBUG"

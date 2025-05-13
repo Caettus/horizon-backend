@@ -16,6 +16,14 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: mysql:9.3.0
+          image: mysql:8.0
           ports:
             - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-eventservice-secret
+                  key: mysql-eventservice-password
+            - name: MYSQL_DATABASE
+              value: eventservice

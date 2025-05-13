@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: mysql-eventservice-config
 data:
-  mysql-url: "jdbc:mysql://mysql:3308/eventservice"
+  mysql-url: "jdbc:mysql://mysql-eventservice:3306/eventservice"
