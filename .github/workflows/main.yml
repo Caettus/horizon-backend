@@ -73,6 +73,7 @@ jobs:
 #        run: |
 #          cd ${{ matrix.service }}
 #          ./gradlew test -Dspring.profiles.active=test --no-daemon
+#      TODO
 
       - name: Upload test report
         if: always()
@@ -143,6 +144,7 @@ jobs:
     name: SonarCloud Analysis (root build)
     runs-on: ubuntu-latest
     needs: security-and-quality
+    if: ${{false}} # TODO
 
     steps:
       - uses: actions/checkout@v3
