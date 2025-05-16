@@ -7,8 +7,15 @@ services:
     ports:
       - "8080:8080"
     networks:
-      - backend
+      - horizon-net
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      # Add any other environment variables your API gateway needs
+      SPRING_PROFILES_ACTIVE: prod
 
 networks:
-  backend:
-    external: false
+  horizon-net:
+    external: true

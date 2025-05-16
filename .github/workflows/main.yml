@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [userservice, eventservice]
+        service: [userservice, eventservice, api-gateway]
 
     services:
       rabbitmq:
@@ -91,7 +91,7 @@ jobs:
     needs: build-and-test
     strategy:
       matrix:
-        service: [userservice, eventservice]
+        service: [userservice, eventservice, api-gateway]
 
     steps:
       - uses: actions/checkout@v3
@@ -174,7 +174,7 @@ jobs:
     needs: sonarcloud
     strategy:
       matrix:
-        service: [userservice, eventservice]
+        service: [userservice, eventservice, api-gateway]
 
     steps:
       - uses: actions/checkout@v3
