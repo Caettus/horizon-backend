@@ -10,7 +10,6 @@ on:
 env:
   REGISTRY: ghcr.io
   ORG_REPO_PATH: caettus/horizon-backend
-  ENABLE_SONAR: "false"          # flip naar "true" als je SonarCloud wilt draaien
 
 # ─────────────────────────────────────────────────────────────
 # 1. BUILD & TEST  (matrix over every service folder)
@@ -32,6 +31,7 @@ jobs:
         env:
           RABBITMQ_DEFAULT_USER: guest
           RABBITMQ_DEFAULT_PASS: guest
+        # health‑check so the job waits until the broker is ready
         options: >-
           --health-cmd "rabbitmq-diagnostics -q ping"
           --health-interval 10s
@@ -69,10 +69,11 @@ jobs:
           cd ${{ matrix.service }}
           ./gradlew clean build -x test --no-daemon
 
-      # - name: Run Unit + Integration Tests
-      #   run: |
-      #     cd ${{ matrix.service }}
-      #     ./gradlew test -Dspring.profiles.active=test --no-daemon
+      #      - name: Run Unit + Integration Tests
+      #        run: |
+      #          cd ${{ matrix.service }}
+      #          ./gradlew test -Dspring.profiles.active=test --no-daemon
+      #      TODO
 
       - name: Upload test report
         if: always()
@@ -81,9 +82,9 @@ jobs:
           name: test-report-${{ matrix.service }}
           path: ${{ matrix.service }}/build/reports/tests/test
 
-# ─────────────────────────────────────────────────────────────
-# 2. SECURITY & CODE-QUALITY
-# ─────────────────────────────────────────────────────────────
+  # ─────────────────────────────────────────────────────────────
+  # 2. SECURITY & CODE‑QUALITY
+  # ─────────────────────────────────────────────────────────────
   security-and-quality:
     name: Security & Code Quality – ${{ matrix.service }}
     runs-on: ubuntu-latest
@@ -136,14 +137,14 @@ jobs:
       - name: Make root gradlew executable
         run: chmod +x gradlew
 
-# ─────────────────────────────────────────────────────────────
-# 3. SONARCLOUD  (optioneel via ENABLE_SONAR)
-# ─────────────────────────────────────────────────────────────
+  # ─────────────────────────────────────────────────────────────
+  # 3. SONARCLOUD
+  # ─────────────────────────────────────────────────────────────
   sonarcloud:
     name: SonarCloud Analysis (root build)
     runs-on: ubuntu-latest
     needs: security-and-quality
-    if: ${{ env.ENABLE_SONAR == 'true' }}   # toggle aan/uit
+    if: ${{false}} # TODO
 
     steps:
       - uses: actions/checkout@v3
@@ -164,14 +165,13 @@ jobs:
             -Dsonar.gradle.skipCompile=true \
             --no-daemon
 
-# ─────────────────────────────────────────────────────────────
-# 4. DOCKER BUILD, SCAN & PUSH  (per-service)
-# ─────────────────────────────────────────────────────────────
+  # ─────────────────────────────────────────────────────────────
+  # 4. DOCKER BUILD, SCAN & PUSH  (per‑service)
+  # ─────────────────────────────────────────────────────────────
   docker-and-scan:
     name: Docker Build & Scan – ${{ matrix.service }}
     runs-on: ubuntu-latest
-    needs: [security-and-quality, sonarcloud]
-    if: ${{ always() }}
+    needs: security-and-quality
     strategy:
       matrix:
         service: [userservice, eventservice, api-gateway]
@@ -198,5 +198,3 @@ jobs:
       - name: Push Docker image
         run: |
           docker push ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/${{ matrix.service }}:latest
-
-# waarom werkt dit nooit
