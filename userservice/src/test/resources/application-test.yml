@@ -11,3 +11,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
+  rabbitmq:
+    host: localhost   # Default to localhost for tests not using testcontainers
+    port: 5672        # Default port, will be overridden by Testcontainers
+    listener:
+      simple:
+        auto-startup: false # Prevent listeners from starting automatically for all tests
