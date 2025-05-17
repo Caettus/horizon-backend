@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: userservice-deployment
+  labels:
+    app: userservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: userservice
+  template:
+    metadata:
+      labels:
+        app: userservice
+    spec:
+      containers:
+        - name: userservice
+          image: ghcr.io/caettus/horizon-backend/userservice:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-userservice-config
+                  key: mysql-url
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-userservice-secret
+                  key: mysql-userservice-username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-userservice-secret
+                  key: mysql-userservice-password
+            - name: SPRING_RABBITMQ_HOST
+              value: "rabbitmq" # Assuming rabbitmq service is named 'rabbitmq' in k8s
+            - name: SPRING_RABBITMQ_PORT
+              value: "5672"
+            - name: SPRING_RABBITMQ_USERNAME
+              value: "guest" # Default guest user, consider using secrets for production
+            - name: SPRING_RABBITMQ_PASSWORD
+              value: "guest" # Default guest password, consider using secrets for production
+            - name: SPRING_SECURITY_USER_NAME
+              value: "root"
+            - name: SPRING_SECURITY_USER_PASSWORD
+              value: "superSecret" 

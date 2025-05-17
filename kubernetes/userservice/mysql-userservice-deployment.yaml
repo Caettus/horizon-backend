@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-userservice-deployment
+  labels:
+    app: mysql-userservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-userservice
+  template:
+    metadata:
+      labels:
+        app: mysql-userservice
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0 # Assuming userservice also uses mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-userservice-secret
+                  key: mysql-userservice-password
+            - name: MYSQL_DATABASE
+              value: userservice_db # From userservice/docker-compose.yml 

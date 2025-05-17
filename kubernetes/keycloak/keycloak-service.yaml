@@ -7,7 +7,7 @@ spec:
     app: keycloak
   ports:
     - protocol: TCP
-      port: 8080          # inside the cluster
-      targetPort: 8080
+      port: 8083          # inside the cluster
+      targetPort: 8083
       nodePort: 30083
   type: NodePort
