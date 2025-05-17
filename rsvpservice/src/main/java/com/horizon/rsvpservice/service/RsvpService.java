@@ -6,7 +6,7 @@ import com.horizon.rsvpservice.model.RsvpStatus;
 import java.util.List;
 
 public interface RsvpService {
-    Rsvp createRsvp(Long eventId, String userId, RsvpStatus status);
+    Rsvp createRsvp(Long eventId, String userId, RsvpStatus status, String userDisplayName);
     Rsvp updateRsvp(Long rsvpId, RsvpStatus status);
     void deleteRsvp(Long rsvpId);
     Rsvp getRsvp(Long rsvpId);

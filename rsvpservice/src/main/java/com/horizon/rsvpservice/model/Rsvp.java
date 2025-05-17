@@ -17,11 +17,14 @@ public class Rsvp {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "event_id", nullable = false)
     private Long eventId;
 
-    @Column(nullable = false, name = "user_keycloak_id")
+    @Column(name = "user_id", nullable = false, columnDefinition = "VARCHAR(255)")
     private String userId;
+
+    @Column(name = "user_display_name", nullable = true)
+    private String userDisplayName;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

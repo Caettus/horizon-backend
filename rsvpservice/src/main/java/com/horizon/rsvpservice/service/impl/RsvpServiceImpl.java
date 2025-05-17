@@ -6,10 +6,13 @@ import com.horizon.rsvpservice.repository.RsvpRepository;
 import com.horizon.rsvpservice.service.RsvpService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,10 +21,20 @@ public class RsvpServiceImpl implements RsvpService {
 
     @Override
     @Transactional
-    public Rsvp createRsvp(Long eventId, String userId, RsvpStatus status) {
+    public Rsvp createRsvp(Long eventId, String userId, RsvpStatus status, String userDisplayName) {
+        if (eventId == null || userId == null || userId.trim().isEmpty() || status == null) {
+            throw new IllegalArgumentException("Event ID, User ID, and Status cannot be null or empty.");
+        }
+
+        Optional<Rsvp> existingRsvp = rsvpRepository.findByEventIdAndUserId(eventId, userId);
+        if (existingRsvp.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "User has already RSVP'd to this event.");
+        }
+
         Rsvp rsvp = new Rsvp();
         rsvp.setEventId(eventId);
         rsvp.setUserId(userId);
+        rsvp.setUserDisplayName(userDisplayName);
         rsvp.setStatus(status);
         return rsvpRepository.save(rsvp);
     }

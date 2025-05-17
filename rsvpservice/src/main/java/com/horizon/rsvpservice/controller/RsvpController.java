@@ -24,7 +24,8 @@ public class RsvpController {
             @AuthenticationPrincipal Jwt jwt
     ) {
         String userId = jwt.getSubject();
-        return ResponseEntity.ok(rsvpService.createRsvp(eventId, userId, status));
+        String displayName = jwt.getClaimAsString("preferred_username");
+        return ResponseEntity.ok(rsvpService.createRsvp(eventId, userId, status, displayName));
     }
 
     @PutMapping("/{rsvpId}")

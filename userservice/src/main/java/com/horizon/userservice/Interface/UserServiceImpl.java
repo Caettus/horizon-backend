@@ -87,22 +87,32 @@ public class UserServiceImpl implements UserService {
 
         Optional<User> existingUserOpt = userDAL.findByKeycloakId(keycloakId);
         User userToSave;
+        Map<String, Object> updatedFieldsForEvent = new HashMap<>();
 
         if (existingUserOpt.isPresent()) {
             userToSave = existingUserOpt.get();
+            String oldUsername = userToSave.getUsername();
+            String oldEmail = userToSave.getEmail();
             boolean updated = false;
+
             if (username != null && !username.equals(userToSave.getUsername())) {
                 userToSave.setUsername(username);
+                updatedFieldsForEvent.put("username", Map.of("oldValue", oldUsername, "newValue", username));
                 updated = true;
             }
             if (email != null && !email.equals(userToSave.getEmail())) {
                 userToSave.setEmail(email);
+                updatedFieldsForEvent.put("email", Map.of("oldValue", oldEmail, "newValue", email));
                 updated = true;
             }
+
             if (updated) {
                 userToSave = userDAL.save(userToSave);
-                // TODO: Publish UserProfileUpdatedEvent for synchronizeUser if needed (e.g. if more fields than username/email are synced)
-                // The main UserProfileUpdatedEvent will be from updateUserByKeycloakId
+                if (!updatedFieldsForEvent.isEmpty()) {
+                    UserProfileUpdatedEvent event = new UserProfileUpdatedEvent(userToSave.getKeycloakId(), updatedFieldsForEvent);
+                    rabbitTemplate.convertAndSend("horizon.users.exchange", "user.profile.updated", event);
+                    System.out.println("Published UserProfileUpdatedEvent from synchronizeUser for keycloakId: " + userToSave.getKeycloakId() + " with fields: " + updatedFieldsForEvent.keySet());
+                }
             }
         } else {
             userToSave = new User();
