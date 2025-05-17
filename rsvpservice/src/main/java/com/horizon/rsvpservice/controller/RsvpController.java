@@ -5,6 +5,8 @@ import com.horizon.rsvpservice.model.RsvpStatus;
 import com.horizon.rsvpservice.service.RsvpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,8 +20,10 @@ public class RsvpController {
     @PostMapping
     public ResponseEntity<Rsvp> createRsvp(
             @RequestParam Long eventId,
-            @RequestParam Long userId,
-            @RequestParam RsvpStatus status) {
+            @RequestParam RsvpStatus status,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        String userId = jwt.getSubject();
         return ResponseEntity.ok(rsvpService.createRsvp(eventId, userId, status));
     }
 
@@ -47,14 +51,14 @@ public class RsvpController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Rsvp>> getRsvpsByUser(@PathVariable Long userId) {
+    public ResponseEntity<List<Rsvp>> getRsvpsByUser(@PathVariable String userId) {
         return ResponseEntity.ok(rsvpService.getRsvpsByUser(userId));
     }
 
     @GetMapping("/event/{eventId}/user/{userId}")
     public ResponseEntity<Rsvp> getRsvpByEventAndUser(
             @PathVariable Long eventId,
-            @PathVariable Long userId) {
+            @PathVariable String userId) {
         return ResponseEntity.ok(rsvpService.getRsvpByEventAndUser(eventId, userId));
     }
 

@@ -18,7 +18,7 @@ public class RsvpServiceImpl implements RsvpService {
 
     @Override
     @Transactional
-    public Rsvp createRsvp(Long eventId, Long userId, RsvpStatus status) {
+    public Rsvp createRsvp(Long eventId, String userId, RsvpStatus status) {
         Rsvp rsvp = new Rsvp();
         rsvp.setEventId(eventId);
         rsvp.setUserId(userId);
@@ -56,15 +56,15 @@ public class RsvpServiceImpl implements RsvpService {
     }
 
     @Override
-    public List<Rsvp> getRsvpsByUser(Long userId) {
+    public List<Rsvp> getRsvpsByUser(String userId) {
         return rsvpRepository.findByUserId(userId);
     }
 
     @Override
-    public Rsvp getRsvpByEventAndUser(Long eventId, Long userId) {
+    public Rsvp getRsvpByEventAndUser(Long eventId, String userId) {
         return rsvpRepository.findByEventIdAndUserId(eventId, userId)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("RSVP not found for event %d and user %d", eventId, userId)));
+                        String.format("RSVP not found for event %d and user %s", eventId, userId)));
     }
 
     @Override

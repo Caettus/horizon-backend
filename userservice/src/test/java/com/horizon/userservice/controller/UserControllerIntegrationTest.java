@@ -32,7 +32,7 @@ class UserControllerIntegrationTest {
         dto.setUsername("testuser");
         dto.setEmail("test" + System.currentTimeMillis() + "@example.com");
         dto.setAge("25");
-        dto.setPassword("password123");
+        dto.setKeycloakId("test-keycloak-id-" + System.currentTimeMillis());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

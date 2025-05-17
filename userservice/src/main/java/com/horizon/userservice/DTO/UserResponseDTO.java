@@ -7,6 +7,7 @@ public class UserResponseDTO {
     private String username;
     private String email;
     private String age;
+    private String keycloakId;
     private LocalDateTime createdAt;
 
     public int getId() {
@@ -39,6 +40,14 @@ public class UserResponseDTO {
 
     public void setAge(String age) {
         this.age = age;
+    }
+
+    public String getKeycloakId() {
+        return keycloakId;
+    }
+
+    public void setKeycloakId(String keycloakId) {
+        this.keycloakId = keycloakId;
     }
 
     public LocalDateTime getCreatedAt() {

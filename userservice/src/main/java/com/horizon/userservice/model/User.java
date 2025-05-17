@@ -1,12 +1,17 @@
 package com.horizon.userservice.model;
 
-
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "users", indexes = {@Index(name = "idx_keycloakid", columnList = "keycloakId", unique = true)})
 public class User {
 
     @Id
@@ -14,20 +19,25 @@ public class User {
     @Column(name = "id")
     private int id;
 
-    @Column(name = "username")
+    @Column(name = "username", nullable = false)
     private String username;
 
-    @Column(name = "email")
+    @Column(name = "email", nullable = false)
     private String email;
 
     @Column(name = "age")
     private String age;
 
-    @Column(name = "password")
-    private String password;
+    @Column(name = "keycloakId", unique = true, nullable = false)
+    private String keycloakId;
 
     @Column(name= "createdAt")
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 
     public int getId() {
         return id;
@@ -61,11 +71,12 @@ public class User {
         this.age = age;
     }
 
-    public String getPassword() {
-        return password;
+    public String getKeycloakId() {
+        return keycloakId;
     }
-    public void setPassword(String password) {
-        this.password = password;
+
+    public void setKeycloakId(String keycloakId) {
+        this.keycloakId = keycloakId;
     }
 
     public LocalDateTime getCreatedAt() {

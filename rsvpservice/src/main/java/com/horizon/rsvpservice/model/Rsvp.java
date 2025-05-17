@@ -20,8 +20,8 @@ public class Rsvp {
     @Column(nullable = false)
     private Long eventId;
 
-    @Column(nullable = false)
-    private Long userId;
+    @Column(nullable = false, name = "user_keycloak_id")
+    private String userId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

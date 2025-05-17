@@ -3,7 +3,9 @@ package com.horizon.userservice.controller;
 import com.horizon.userservice.DTO.UserCreateDTO;
 import com.horizon.userservice.DTO.UserResponseDTO;
 import com.horizon.userservice.DTO.UserUpdateDTO;
+import com.horizon.userservice.DTO.UserSyncRequestDTO;
 import com.horizon.userservice.Interface.UserService;
+import com.horizon.userservice.model.User;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -50,5 +53,38 @@ public class UsersController {
     public ResponseEntity<Void> deleteUser(@PathVariable int id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/keycloak/{keycloakId}")
+    public ResponseEntity<UserResponseDTO> getUserByKecloakId(@PathVariable String keycloakId) {
+        User user = userService.getUserByKeycloakId(keycloakId);
+        return ResponseEntity.ok(mapToResponseDTO(user));
+    }
+
+    @GetMapping("/batch")
+    public ResponseEntity<List<UserResponseDTO>> getUsersByKecloakIds(@RequestParam List<String> ids) {
+        List<User> users = userService.getUsersByKeycloakIds(ids);
+        List<UserResponseDTO> dtos = users.stream().map(this::mapToResponseDTO).collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
+    private UserResponseDTO mapToResponseDTO(User user) {
+        UserResponseDTO dto = new UserResponseDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setAge(user.getAge());
+        dto.setKeycloakId(user.getKeycloakId());
+        dto.setCreatedAt(user.getCreatedAt());
+        return dto;
+    }
+
+    @PostMapping("/internal/synchronize")
+    public ResponseEntity<UserResponseDTO> synchronizeUser(@RequestBody UserSyncRequestDTO syncRequest) {
+        User user = userService.synchronizeUser(syncRequest.getKeycloakId(), syncRequest.getUsername(), syncRequest.getEmail());
+        if (user == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(mapToResponseDTO(user));
     }
 }

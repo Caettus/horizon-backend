@@ -2,7 +2,7 @@ package com.horizon.userservice.DTO;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import org.antlr.v4.runtime.misc.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 public class UserCreateDTO {
     @NotBlank
@@ -16,7 +16,7 @@ public class UserCreateDTO {
     private String age;
 
     @NotBlank
-    private String password;
+    private String keycloakId;
 
     public String getUsername() {
         return username;
@@ -42,11 +42,11 @@ public class UserCreateDTO {
         this.age = age;
     }
 
-    public String getPassword() {
-        return password;
+    public String getKeycloakId() {
+        return keycloakId;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setKeycloakId(String keycloakId) {
+        this.keycloakId = keycloakId;
     }
 }

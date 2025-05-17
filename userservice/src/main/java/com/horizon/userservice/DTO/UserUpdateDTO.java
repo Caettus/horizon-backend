@@ -8,8 +8,6 @@ public class UserUpdateDTO {
 
     private String age;
 
-    private String password;
-
     public String getEmail() {
         return email;
     }
@@ -24,14 +22,6 @@ public class UserUpdateDTO {
 
     public void setAge(String age) {
         this.age = age;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 }
 
