@@ -41,3 +41,17 @@ spec:
               value: "superSecret"
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
               value: "DEBUG"
+            - name: SPRING_RABBITMQ_HOST
+              value: "eventbus-service"
+            - name: SPRING_RABBITMQ_PORT
+              value: "5672"
+            - name: SPRING_RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: eventbus-secret
+                  key: rabbitmq-user
+            - name: SPRING_RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: eventbus-secret
+                  key: rabbitmq-password

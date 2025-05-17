@@ -23,10 +23,16 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
             - name: SPRING_RABBITMQ_HOST
-              value: "rabbitmq-service"
+              value: "eventbus-service"
             - name: SPRING_RABBITMQ_PORT
               value: "5672"
             - name: SPRING_RABBITMQ_USERNAME
-              value: "guest"
+              valueFrom:
+                secretKeyRef:
+                  name: eventbus-secret
+                  key: rabbitmq-user
             - name: SPRING_RABBITMQ_PASSWORD
-              value: "guest" 
+              valueFrom:
+                secretKeyRef:
+                  name: eventbus-secret
+                  key: rabbitmq-password 

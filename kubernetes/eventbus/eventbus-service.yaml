@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: eventbus-service # This will be the hostname for RabbitMQ inside the k8s cluster, e.g., rabbitmq
+  labels:
+    app: eventbus
+spec:
+  selector:
+    app: eventbus
+  ports:
+    - name: amqp
+      protocol: TCP
+      port: 5672
+      targetPort: 5672
+    - name: management
+      protocol: TCP
+      port: 15672
+      targetPort: 15672
+      nodePort: 30002 # Exposing management UI on a NodePort for accessibility
+  type: NodePort # Using NodePort to expose management, AMQP will be ClusterIP by default under this type if not specified otherwise for that port. 

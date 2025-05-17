@@ -36,13 +36,19 @@ spec:
                   name: mysql-userservice-secret
                   key: mysql-userservice-password
             - name: SPRING_RABBITMQ_HOST
-              value: "rabbitmq" # Assuming rabbitmq service is named 'rabbitmq' in k8s
+              value: "eventbus-service" # Updated to use the k8s service name for eventbus
             - name: SPRING_RABBITMQ_PORT
               value: "5672"
             - name: SPRING_RABBITMQ_USERNAME
-              value: "guest" # Default guest user, consider using secrets for production
+              valueFrom: # Fetching username from secret
+                secretKeyRef:
+                  name: eventbus-secret
+                  key: rabbitmq-user
             - name: SPRING_RABBITMQ_PASSWORD
-              value: "guest" # Default guest password, consider using secrets for production
+              valueFrom: # Fetching password from secret
+                secretKeyRef:
+                  name: eventbus-secret
+                  key: rabbitmq-password
             - name: SPRING_SECURITY_USER_NAME
               value: "root"
             - name: SPRING_SECURITY_USER_PASSWORD
