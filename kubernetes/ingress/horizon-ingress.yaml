@@ -2,40 +2,35 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: horizon-ingress
-  # We laten complexe rewrite-annotaties hier even weg voor eenvoud.
-  # De standaard NGINX Ingress controller gedraagt zich meestal correct voor deze paden.
-  # Als je Ingress controller een specifieke klasse nodig heeft, voeg je die hier toe, bijv:
-  # annotations:
-  #   kubernetes.io/ingress.class: nginx
 spec:
   rules:
     - host: keycloak.horizon.local
       http:
         paths:
-          - path: /auth # Dit matcht /auth en alles daaronder (bijv. /auth/realms)
-            pathType: Prefix # Dit is een standaard prefix match
+          - path: /auth
+            pathType: Prefix
             backend:
               service:
-                name: keycloak-service    # Naam van je Keycloak Kubernetes Service
+                name: keycloak-service
                 port:
-                  number: 8080            # Poort van je Keycloak Kubernetes Service
+                  number: 8083 # Corrected
     - host: api.horizon.local
       http:
         paths:
-          - path: / # Dit matcht alle paden voor api.horizon.local
-            pathType: Prefix # Standaard prefix match voor de root
+          - path: /
+            pathType: Prefix
             backend:
               service:
-                name: api-gateway-service # Naam van je API Gateway Kubernetes Service
+                name: api-gateway-service
                 port:
-                  number: 8081            # Poort van je API Gateway Kubernetes Service (pas aan indien nodig)
+                  number: 8080 # Corrected
     - host: app.horizon.local
       http:
         paths:
-          - path: / # Dit matcht alle paden voor app.horizon.local
-            pathType: Prefix # Standaard prefix match voor de root
+          - path: /
+            pathType: Prefix
             backend:
               service:
-                name: frontend-service    # Naam van je Vue Frontend Kubernetes Service
+                name: frontend-service # Ensure this service exists
                 port:
-                  number: 80              # Poort van je Vue Frontend Kubernetes Service
+                  number: 80

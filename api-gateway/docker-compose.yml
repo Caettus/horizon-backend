@@ -13,7 +13,6 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: guest
       SPRING_RABBITMQ_PASSWORD: guest
-      # Add any other environment variables your API gateway needs
       SPRING_PROFILES_ACTIVE: prod
 
 networks:
