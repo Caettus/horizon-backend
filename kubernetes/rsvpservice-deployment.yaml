@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rsvpservice-deployment
+  labels:
+    app: rsvpservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rsvpservice
+  template:
+    metadata:
+      labels:
+        app: rsvpservice
+    spec:
+      containers:
+        - name: rsvpservice
+          image: ghcr.io/caettus/horizon-backend/rsvpservice:latest
+          ports:
+            - containerPort: 8084
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-rsvpservice-config
+                  key: mysql-url
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-rsvpservice-secret
+                  key: mysql-rsvpservice-username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-rsvpservice-secret
+                  key: mysql-rsvpservice-password
+            - name: SPRING_SECURITY_USER_NAME
+              value: "root"
+            - name: SPRING_SECURITY_USER_PASSWORD
+              value: "superSecret"
+            - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
+              value: "DEBUG"
+            - name: SPRING_RABBITMQ_HOST
+              value: "eventbus-service"
+            - name: SPRING_RABBITMQ_PORT
+              value: "5672"
+            - name: SPRING_RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: eventbus-secret
+                  key: rabbitmq-user
+            - name: SPRING_RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: eventbus-secret
+                  key: rabbitmq-password 

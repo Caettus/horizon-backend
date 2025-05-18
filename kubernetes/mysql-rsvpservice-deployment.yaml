@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-rsvpservice-deployment
+  labels:
+    app: mysql-rsvpservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-rsvpservice
+  template:
+    metadata:
+      labels:
+        app: mysql-rsvpservice
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-rsvpservice-secret
+                  key: mysql-rsvpservice-password
+            - name: MYSQL_DATABASE
+              value: rsvpdb 
