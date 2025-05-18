@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [userservice, eventservice, api-gateway]
+        service: [userservice, eventservice, api-gateway, rsvpservice]
 
     services:
       rabbitmq:
