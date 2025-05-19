@@ -9,4 +9,4 @@ spec:
     - protocol: TCP
       port: 3306
       targetPort: 3306
-  type: ClusterIP # Changed from NodePort to ClusterIP for internal DB service 
+  type: ClusterIP
