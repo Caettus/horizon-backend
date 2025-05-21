@@ -23,16 +23,14 @@ public class UserSyncGlobalFilter implements GlobalFilter, Ordered {
     private static final Logger log = LoggerFactory.getLogger(UserSyncGlobalFilter.class);
     private final WebClient.Builder webClientBuilder;
 
-    // Assuming userservice is resolvable via service discovery or fixed URL
-    // The URI is from application.properties: http://userservice-service:8081
-    private final String userServiceUri = "http://userservice-service:8081";
+
+    private final String userServiceUri = "http://userservice:8081";
 
     public UserSyncGlobalFilter(WebClient.Builder webClientBuilder) {
         this.webClientBuilder = webClientBuilder;
     }
 
     // Define a DTO that matches UserSyncRequestDTO in userservice
-    // Alternatively, create a shared library for such DTOs
     private static class UserSyncRequest {
         private String keycloakId;
         private String username;
@@ -43,7 +41,6 @@ public class UserSyncGlobalFilter implements GlobalFilter, Ordered {
             this.username = username;
             this.email = email;
         }
-        // Getters are needed for Jackson serialization by WebClient
         public String getKeycloakId() { return keycloakId; }
         public String getUsername() { return username; }
         public String getEmail() { return email; }
@@ -75,7 +72,7 @@ public class UserSyncGlobalFilter implements GlobalFilter, Ordered {
 
                 return webClientBuilder.build()
                     .post()
-                    .uri(userServiceUri + "/internal/users/synchronize")
+                    .uri(userServiceUri + "/users/internal/synchronize")
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(syncRequest)
                     .retrieve()
