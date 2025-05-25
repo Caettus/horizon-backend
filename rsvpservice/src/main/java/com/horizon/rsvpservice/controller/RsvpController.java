@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/rsvps")
+@RequestMapping("/rsvps")
 @RequiredArgsConstructor
 public class RsvpController {
     private final RsvpService rsvpService;
