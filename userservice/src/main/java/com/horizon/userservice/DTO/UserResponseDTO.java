@@ -9,6 +9,7 @@ public class UserResponseDTO {
     private String age;
     private String keycloakId;
     private LocalDateTime createdAt;
+    private int eventsCreated;
 
     public int getId() {
         return id;
@@ -56,6 +57,14 @@ public class UserResponseDTO {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public int getEventsCreated() {
+        return eventsCreated;
+    }
+
+    public void setEventsCreated(int eventsCreated) {
+        this.eventsCreated = eventsCreated;
     }
 }
 

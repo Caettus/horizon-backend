@@ -4,15 +4,16 @@ import com.horizon.rsvpservice.model.Rsvp;
 import com.horizon.rsvpservice.model.RsvpStatus;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface RsvpService {
-    Rsvp createRsvp(Long eventId, String userId, RsvpStatus status, String userDisplayName);
+    Rsvp createRsvp(UUID eventId, String userId, RsvpStatus status, String userDisplayName);
     Rsvp updateRsvp(Long rsvpId, RsvpStatus status);
     void deleteRsvp(Long rsvpId);
     Rsvp getRsvp(Long rsvpId);
-    List<Rsvp> getRsvpsByEvent(Long eventId);
+    List<Rsvp> getRsvpsByEvent(UUID eventId);
     List<Rsvp> getRsvpsByUser(String userId);
-    Rsvp getRsvpByEventAndUser(Long eventId, String userId);
-    List<Rsvp> getRsvpsByEventAndStatus(Long eventId, RsvpStatus status);
-    long countRsvpsByEventAndStatus(Long eventId, RsvpStatus status);
+    Rsvp getRsvpByEventAndUser(UUID eventId, String userId);
+    List<Rsvp> getRsvpsByEventAndStatus(UUID eventId, RsvpStatus status);
+    long countRsvpsByEventAndStatus(UUID eventId, RsvpStatus status);
 } 

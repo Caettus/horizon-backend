@@ -14,7 +14,8 @@ public class EventPublisher {
 
     public void publishEventCreated(Event event) {
         EventCreatedMessage message = new EventCreatedMessage(
-                event.getId(), event.getTitle(), event.getStartDate(), event.getCreatedAt()
+                event.getId(), event.getTitle(), event.getStartDate(), event.getCreatedAt(),
+                event.getOrganizerId()
         );
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EXCHANGE,

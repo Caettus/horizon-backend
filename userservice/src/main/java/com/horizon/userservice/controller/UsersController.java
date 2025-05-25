@@ -92,6 +92,7 @@ public class UsersController {
         dto.setAge(user.getAge());
         dto.setKeycloakId(user.getKeycloakId());
         dto.setCreatedAt(user.getCreatedAt());
+        dto.setEventsCreated(user.getEventsCreatedCount());
         return dto;
     }
 
