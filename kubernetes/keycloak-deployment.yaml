@@ -39,7 +39,7 @@ spec:
             # De URL die als ISSUER in de tokens moet komen.
             # Dit is de interne service URL die je API Gateway verwacht.
             - name: KC_HOSTNAME_URL
-              value: "http://192.168.49.2:30083"
+              value: "http://keycloak-service:8083"
 
             # # De publiek toegankelijke URL voor de frontend (browser) interacties.
             # # Gebruik hier de VASTE NodePort URL.
