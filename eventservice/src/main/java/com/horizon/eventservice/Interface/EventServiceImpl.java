@@ -6,6 +6,8 @@ import com.horizon.eventservice.DTO.EventUpdateDTO;
 import com.horizon.eventservice.DAL.EventDAL;
 import com.horizon.eventservice.eventbus.EventPublisher;
 import com.horizon.eventservice.model.Event;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,7 @@ public class EventServiceImpl implements EventService {
 
     private final EventDAL eventDAL;
     private final EventPublisher eventPublisher;
+    private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
 
     @Autowired
     public EventServiceImpl(EventDAL eventDAL, EventPublisher eventPublisher) {
@@ -41,6 +44,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Event createEvent(EventCreateDTO createDTO) {
+        logger.info("[EventServiceImpl] Received EventCreateDTO: {}", createDTO);
+        logger.info("[EventServiceImpl] OrganizerId from DTO: {}", createDTO.getOrganizerId());
 
         Event event = new Event();
         event.setId(UUID.randomUUID());
@@ -57,7 +62,12 @@ public class EventServiceImpl implements EventService {
         event.setStatus(Event.EventStatus.UPCOMING);
         event.setCreatedAt(LocalDateTime.now());
 
+        logger.info("[EventServiceImpl] Event object before save: {}", event);
+        logger.info("[EventServiceImpl] OrganizerId in Event object before save: {}", event.getOrganizerId());
+
         Event saved = eventDAL.save(event);
+        logger.info("[EventServiceImpl] Saved Event object: {}", saved);
+        logger.info("[EventServiceImpl] OrganizerId in Saved Event object: {}", saved.getOrganizerId());
 
         // publiceer het nieuwe event naar de eventbus
         eventPublisher.publishEventCreated(saved);

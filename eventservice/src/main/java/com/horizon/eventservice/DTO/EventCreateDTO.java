@@ -41,6 +41,7 @@ public class EventCreateDTO {
     public void setPrivate(boolean isPrivate) { this.isPrivate = isPrivate; }
 
     public UUID getOrganizerId() { return organizerId; }
+
     public void setOrganizerId(UUID organizerId) { this.organizerId = organizerId; }
 
     public String getImageUrl() { return imageUrl; }

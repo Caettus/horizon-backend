@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +22,7 @@ public class RsvpServiceImpl implements RsvpService {
 
     @Override
     @Transactional
-    public Rsvp createRsvp(Long eventId, String userId, RsvpStatus status, String userDisplayName) {
+    public Rsvp createRsvp(UUID eventId, String userId, RsvpStatus status, String userDisplayName) {
         if (eventId == null || userId == null || userId.trim().isEmpty() || status == null) {
             throw new IllegalArgumentException("Event ID, User ID, and Status cannot be null or empty.");
         }
@@ -64,7 +65,7 @@ public class RsvpServiceImpl implements RsvpService {
     }
 
     @Override
-    public List<Rsvp> getRsvpsByEvent(Long eventId) {
+    public List<Rsvp> getRsvpsByEvent(UUID eventId) {
         return rsvpRepository.findByEventId(eventId);
     }
 
@@ -74,19 +75,19 @@ public class RsvpServiceImpl implements RsvpService {
     }
 
     @Override
-    public Rsvp getRsvpByEventAndUser(Long eventId, String userId) {
+    public Rsvp getRsvpByEventAndUser(UUID eventId, String userId) {
         return rsvpRepository.findByEventIdAndUserId(eventId, userId)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        String.format("RSVP not found for event %d and user %s", eventId, userId)));
+                        String.format("RSVP not found for event %s and user %s", eventId.toString(), userId)));
     }
 
     @Override
-    public List<Rsvp> getRsvpsByEventAndStatus(Long eventId, RsvpStatus status) {
+    public List<Rsvp> getRsvpsByEventAndStatus(UUID eventId, RsvpStatus status) {
         return rsvpRepository.findByEventIdAndStatus(eventId, status);
     }
 
     @Override
-    public long countRsvpsByEventAndStatus(Long eventId, RsvpStatus status) {
+    public long countRsvpsByEventAndStatus(UUID eventId, RsvpStatus status) {
         return rsvpRepository.countByEventIdAndStatus(eventId, status);
     }
 } 

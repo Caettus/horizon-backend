@@ -17,18 +17,21 @@ public class EventCreatedMessage implements Serializable {
     private final String title;
     private final LocalDateTime startDate;
     private final LocalDateTime createdAt;
+    private final UUID organizerId;
 
     @JsonCreator
     public EventCreatedMessage(
             @JsonProperty("id") UUID id,
             @JsonProperty("title") String title,
             @JsonProperty("startDate") LocalDateTime startDate,
-            @JsonProperty("createdAt") LocalDateTime createdAt
+            @JsonProperty("createdAt") LocalDateTime createdAt,
+            @JsonProperty("organizerId") UUID organizerId
     ) {
         this.id = id;
         this.title = title;
         this.startDate = startDate;
         this.createdAt = createdAt;
+        this.organizerId = organizerId;
     }
 
     public UUID getId() {
@@ -47,6 +50,10 @@ public class EventCreatedMessage implements Serializable {
         return createdAt;
     }
 
+    public UUID getOrganizerId() {
+        return organizerId;
+    }
+
     @Override
     public String toString() {
         return "EventCreatedMessage{" +
@@ -54,6 +61,7 @@ public class EventCreatedMessage implements Serializable {
                 ", title='" + title + '\'' +
                 ", startDate=" + startDate +
                 ", createdAt=" + createdAt +
+                ", organizerId=" + organizerId +
                 '}';
     }
 }

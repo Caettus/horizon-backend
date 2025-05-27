@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface RsvpRepository extends JpaRepository<Rsvp, Long> {
-    List<Rsvp> findByEventId(Long eventId);
+    List<Rsvp> findByEventId(UUID eventId);
     List<Rsvp> findByUserId(String userId);
-    Optional<Rsvp> findByEventIdAndUserId(Long eventId, String userId);
-    List<Rsvp> findByEventIdAndStatus(Long eventId, RsvpStatus status);
-    long countByEventIdAndStatus(Long eventId, RsvpStatus status);
+    Optional<Rsvp> findByEventIdAndUserId(UUID eventId, String userId);
+    List<Rsvp> findByEventIdAndStatus(UUID eventId, RsvpStatus status);
+    long countByEventIdAndStatus(UUID eventId, RsvpStatus status);
 } 

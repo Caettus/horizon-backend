@@ -19,6 +19,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/public/**").permitAll()
+                        .requestMatchers("/actuator/prometheus").permitAll()
+                        .requestMatchers("/users/internal/synchronize").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -27,4 +29,3 @@ public class SecurityConfig {
         return http.build();
     }
 }
-

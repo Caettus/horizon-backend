@@ -6,6 +6,7 @@ import com.horizon.userservice.DTO.UserResponseDTO;
 import com.horizon.userservice.DTO.UserUpdateDTO;
 import com.horizon.userservice.event.UserRegisteredEvent;
 import com.horizon.userservice.event.UserProfileUpdatedEvent;
+import com.horizon.userservice.eventbus.EventCreatedListener;
 import com.horizon.userservice.model.User;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.HashMap;
 
@@ -25,11 +27,13 @@ public class UserServiceImpl implements UserService {
 
     private final UserDAL userDAL;
     private final RabbitTemplate rabbitTemplate;
+    private final EventCreatedListener eventCreatedListener;
 
     @Autowired
-    public UserServiceImpl(UserDAL userDAL, RabbitTemplate rabbitTemplate) {
+    public UserServiceImpl(UserDAL userDAL, RabbitTemplate rabbitTemplate, EventCreatedListener eventCreatedListener) {
         this.userDAL = userDAL;
         this.rabbitTemplate = rabbitTemplate;
+        this.eventCreatedListener = eventCreatedListener;
     }
 
     @Override
@@ -83,6 +87,14 @@ public class UserServiceImpl implements UserService {
         if (keycloakId == null || keycloakId.trim().isEmpty()) {
             System.err.println("keycloakId is null or empty in synchronizeUser. Skipping.");
             return null; 
+        }
+        if (username == null || username.trim().isEmpty()) {
+            System.err.println("username is null or empty in synchronizeUser for keycloakId: " + keycloakId + ". Skipping.");
+            return null;
+        }
+        if (email == null || email.trim().isEmpty()) {
+            System.err.println("email is null or empty in synchronizeUser for keycloakId: " + keycloakId + ". Skipping.");
+            return null;
         }
 
         Optional<User> existingUserOpt = userDAL.findByKeycloakId(keycloakId);
@@ -194,6 +206,24 @@ public class UserServiceImpl implements UserService {
         dto.setAge(user.getAge());
         dto.setKeycloakId(user.getKeycloakId());
         dto.setCreatedAt(user.getCreatedAt());
+
+        // Populate eventsCreated field
+        if (user.getKeycloakId() != null) {
+            System.out.println("[UserServiceImpl] Mapping DTO for user: " + user.getUsername() + ", Keycloak ID: " + user.getKeycloakId());
+            try {
+                UUID userUuid = UUID.fromString(user.getKeycloakId());
+                System.out.println("[UserServiceImpl] Converted Keycloak ID to UUID: " + userUuid);
+                int count = eventCreatedListener.getEventCount(userUuid);
+                System.out.println("[UserServiceImpl] Fetched event count for UUID " + userUuid + ": " + count);
+                dto.setEventsCreated(count);
+            } catch (IllegalArgumentException e) {
+                System.err.println("[UserServiceImpl] Invalid KeycloakId format for user " + user.getId() + " (" + user.getUsername() + "): " + user.getKeycloakId() + ". Error: " + e.getMessage());
+                dto.setEventsCreated(0);
+            }
+        } else {
+            System.out.println("[UserServiceImpl] User " + user.getUsername() + " has null Keycloak ID.");
+            dto.setEventsCreated(0);
+        }
         return dto;
     }
 }

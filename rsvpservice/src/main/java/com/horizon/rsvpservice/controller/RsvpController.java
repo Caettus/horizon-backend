@@ -10,16 +10,17 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/rsvps")
+@RequestMapping("/rsvps")
 @RequiredArgsConstructor
 public class RsvpController {
     private final RsvpService rsvpService;
 
     @PostMapping
     public ResponseEntity<Rsvp> createRsvp(
-            @RequestParam Long eventId,
+            @RequestParam UUID eventId,
             @RequestParam RsvpStatus status,
             @AuthenticationPrincipal Jwt jwt
     ) {
@@ -47,7 +48,7 @@ public class RsvpController {
     }
 
     @GetMapping("/event/{eventId}")
-    public ResponseEntity<List<Rsvp>> getRsvpsByEvent(@PathVariable Long eventId) {
+    public ResponseEntity<List<Rsvp>> getRsvpsByEvent(@PathVariable UUID eventId) {
         return ResponseEntity.ok(rsvpService.getRsvpsByEvent(eventId));
     }
 
@@ -58,21 +59,21 @@ public class RsvpController {
 
     @GetMapping("/event/{eventId}/user/{userId}")
     public ResponseEntity<Rsvp> getRsvpByEventAndUser(
-            @PathVariable Long eventId,
+            @PathVariable UUID eventId,
             @PathVariable String userId) {
         return ResponseEntity.ok(rsvpService.getRsvpByEventAndUser(eventId, userId));
     }
 
     @GetMapping("/event/{eventId}/status/{status}")
     public ResponseEntity<List<Rsvp>> getRsvpsByEventAndStatus(
-            @PathVariable Long eventId,
+            @PathVariable UUID eventId,
             @PathVariable RsvpStatus status) {
         return ResponseEntity.ok(rsvpService.getRsvpsByEventAndStatus(eventId, status));
     }
 
     @GetMapping("/event/{eventId}/status/{status}/count")
     public ResponseEntity<Long> countRsvpsByEventAndStatus(
-            @PathVariable Long eventId,
+            @PathVariable UUID eventId,
             @PathVariable RsvpStatus status) {
         return ResponseEntity.ok(rsvpService.countRsvpsByEventAndStatus(eventId, status));
     }

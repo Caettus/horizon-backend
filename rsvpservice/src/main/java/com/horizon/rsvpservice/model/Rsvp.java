@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "rsvps")
@@ -18,7 +19,7 @@ public class Rsvp {
     private Long id;
 
     @Column(name = "event_id", nullable = false)
-    private Long eventId;
+    private UUID eventId;
 
     @Column(name = "user_id", nullable = false, columnDefinition = "VARCHAR(255)")
     private String userId;

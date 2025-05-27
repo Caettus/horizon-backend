@@ -31,7 +31,6 @@ public class EventsController {
         return ResponseEntity.ok(events);
     }
 
-
     @PostMapping
     public ResponseEntity<Event> createEvent(@RequestBody EventCreateDTO createDTO) {
         Event event = eventService.createEvent(createDTO);

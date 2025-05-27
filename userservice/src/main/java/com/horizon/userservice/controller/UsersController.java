@@ -10,6 +10,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,16 +58,30 @@ public class UsersController {
     }
 
     @GetMapping("/keycloak/{keycloakId}")
-    public ResponseEntity<UserResponseDTO> getUserByKecloakId(@PathVariable String keycloakId) {
+    public ResponseEntity<UserResponseDTO> getUserByKeycloakId(@PathVariable String keycloakId) {
         User user = userService.getUserByKeycloakId(keycloakId);
         return ResponseEntity.ok(mapToResponseDTO(user));
     }
 
     @GetMapping("/batch")
-    public ResponseEntity<List<UserResponseDTO>> getUsersByKecloakIds(@RequestParam List<String> ids) {
+    public ResponseEntity<List<UserResponseDTO>> getUsersByKeycloakIds(@RequestParam List<String> ids) {
         List<User> users = userService.getUsersByKeycloakIds(ids);
         List<UserResponseDTO> dtos = users.stream().map(this::mapToResponseDTO).collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<UserResponseDTO> getCurrentUserProfile(@AuthenticationPrincipal Jwt jwt) {
+        String keycloakId = jwt.getSubject();
+        User user = userService.getUserByKeycloakId(keycloakId);
+        return ResponseEntity.ok(mapToResponseDTO(user));
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserResponseDTO> updateCurrentUserProfile(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UserUpdateDTO dto) {
+        String keycloakId = jwt.getSubject();
+        User updatedUser = userService.updateUserByKeycloakId(keycloakId, dto);
+        return ResponseEntity.ok(mapToResponseDTO(updatedUser));
     }
 
     private UserResponseDTO mapToResponseDTO(User user) {
@@ -76,6 +92,7 @@ public class UsersController {
         dto.setAge(user.getAge());
         dto.setKeycloakId(user.getKeycloakId());
         dto.setCreatedAt(user.getCreatedAt());
+        dto.setEventsCreated(user.getEventsCreatedCount());
         return dto;
     }
 

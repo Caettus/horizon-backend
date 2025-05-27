@@ -31,6 +31,9 @@ public class User {
     @Column(name = "keycloakId", unique = true, nullable = false)
     private String keycloakId;
 
+    @Column(name = "eventsCreatedCount")
+    private Integer eventsCreatedCount = 0;
+
     @Column(name= "createdAt")
     private LocalDateTime createdAt;
 
@@ -77,6 +80,14 @@ public class User {
 
     public void setKeycloakId(String keycloakId) {
         this.keycloakId = keycloakId;
+    }
+
+    public Integer getEventsCreatedCount() {
+        return eventsCreatedCount == null ? 0 : eventsCreatedCount;
+    }
+
+    public void setEventsCreatedCount(Integer eventsCreatedCount) {
+        this.eventsCreatedCount = eventsCreatedCount;
     }
 
     public LocalDateTime getCreatedAt() {
