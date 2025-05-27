@@ -39,16 +39,13 @@ spec:
             # De URL die als ISSUER in de tokens moet komen.
             # Dit is de interne service URL die je API Gateway verwacht.
             - name: KC_HOSTNAME_URL
-              value: "http://keycloak.horizon.local/auth" # Base path, Keycloak voegt /realms/... toe.
+              value: "http://192.168.49.2:30083"
 
-            # De publiek toegankelijke URL voor de frontend (browser) interacties.
-            # Gebruik hier de VASTE NodePort URL.
-            - name: KC_HOSTNAME_FRONTEND_URL # Deze variabele zou de login/redirects moeten sturen.
-              value: "http://keycloak.horizon.local/auth" # VERVANG <MINIKUBE_IP> met de output van 'minikube ip'
+            # # De publiek toegankelijke URL voor de frontend (browser) interacties.
+            # # Gebruik hier de VASTE NodePort URL.
+            # - name: KC_HOSTNAME_FRONTEND_URL # Deze variabele zou de login/redirects moeten sturen.
+            #   value: "http://keycloak.horizon.local/auth" # VERVANG <MINIKUBE_IP> met de output van 'minikube ip'
 
-            # Optioneel: Als je de admin console via een specifieke (externe) URL wilt benaderen
-            - name: KC_HOSTNAME_ADMIN_URL
-              value: "http://keycloak.horizon.local/auth" # VERVANG <MINIKUBE_IP>
 
             - name: KC_HTTP_ENABLED # Zeker stellen dat HTTP werkt
               value: "true"
