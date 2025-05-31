@@ -32,27 +32,29 @@ spec:
                   name: keycloak-admin-secret
                   key: KEYCLOAK_ADMIN_PASSWORD
 
-              # Vertel Keycloak welke hostname provider te gebruiken
+            # Vertel Keycloak welke hostname provider te gebruiken
             - name: KC_HOSTNAME_PROVIDER
               value: "fixed"
 
             # De URL die als ISSUER in de tokens moet komen.
             # Dit is de interne service URL die je API Gateway verwacht.
-            - name: KC_HOSTNAME_URL
+            - name: KC_HOSTNAME
               value: "http://keycloak-service:8083"
-
-            # # De publiek toegankelijke URL voor de frontend (browser) interacties.
-            # # Gebruik hier de VASTE NodePort URL.
-            # - name: KC_HOSTNAME_FRONTEND_URL # Deze variabele zou de login/redirects moeten sturen.
-            #   value: "http://keycloak.horizon.local/auth" # VERVANG <MINIKUBE_IP> met de output van 'minikube ip'
-
-
-            - name: KC_HTTP_ENABLED # Zeker stellen dat HTTP werkt
-              value: "true"
-            - name: KC_PROXY
-              value: "edge" # Kan helpen als Keycloak achter een proxy (zoals K8s service/NodePort) draait
+            - name: KC_HOSTNAME_FRONTEND_URL
+              value: "http://127.0.0.1:54651"
             - name: KC_HOSTNAME_STRICT
-              value: "false" # Maakt Keycloak minder streng over de Host header, nuttig voor dev
+              value: "false"
+            - name: KC_STRICT_HTTPS
+              value: "false"
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_HOSTNAME_BACKCHANNEL
+              value: "http://keycloak-service:8083"
+            - name: KC_HOSTNAME_BACKCHANNEL_STRICT
+              value: "false"
+            - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC
+              value: "true"
+
 
 
           volumeMounts:
