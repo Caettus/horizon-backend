@@ -129,7 +129,7 @@ fabric.properties
 
 # Package Files #
 *.jar
-+ !keycloak/custom-mappers/keycloak-custom-realm-issuer-url.jar
+!keycloak/custom-mappers/keycloak-custom-realm-issuer-url.jar
 *.war
 *.nar
 *.ear
