@@ -17,8 +17,6 @@ spec:
       containers:
         - name: keycloak
           image: ghcr.io/caettus/horizon-backend/keycloak:latest
-
-          args: ["start-dev"]
           ports:
             - containerPort: 8080
           env:
@@ -40,9 +38,9 @@ spec:
             # De URL die als ISSUER in de tokens moet komen.
             # Dit is de interne service URL die je API Gateway verwacht.
             - name: KC_HOSTNAME
-              value: "http://keycloak-service:8083"
+              value: "http://127.0.0.1:53864"
             - name: KC_HOSTNAME_FRONTEND_URL
-              value: "http://127.0.0.1:54651"
+              value: "http://127.0.0.1:53864"
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_STRICT_HTTPS
