@@ -1,20 +1,25 @@
+# keycloak/docker-compose.yml
+
 services:
   keycloak:
-    image: quay.io/keycloak/keycloak:26.2
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ghcr.io/caettus/keycloak-custom:latest
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
     command:
       - start-dev
     ports:
-      - "8083:8080"       # op deze manier staat keycloak op poort 8080 BINNEN de container 8083, keycloak staat standaard op 8080 namelijk
+      - "8083:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
     networks:
-        - horizon-net
+      - horizon-net
+
 volumes:
   keycloak_data:
-
 
 networks:
   horizon-net:

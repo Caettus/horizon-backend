@@ -198,3 +198,10 @@ jobs:
       - name: Push Docker image
         run: |
           docker push ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/${{ matrix.service }}:latest
+
+      # -------- custom keycloak image ----------
+      - name: Build Keycloak image
+        run: docker build -t ghcr.io/caettus/keycloak-custom:latest ./keycloak
+
+      - name: Push Keycloak image
+        run: docker push ghcr.io/caettus/keycloak-custom:latest

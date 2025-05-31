@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: keycloak
-          image: quay.io/keycloak/keycloak:26.2
+          image: ghcr.io/caettus/keycloak-custom:latest
           args: ["start-dev"]
           ports:
             - containerPort: 8080
