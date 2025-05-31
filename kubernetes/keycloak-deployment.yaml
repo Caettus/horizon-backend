@@ -38,9 +38,9 @@ spec:
             # De URL die als ISSUER in de tokens moet komen.
             # Dit is de interne service URL die je API Gateway verwacht.
             - name: KC_HOSTNAME
-              value: "http://127.0.0.1:53864"
+              value: "http://127.0.0.1:55513"
             - name: KC_HOSTNAME_FRONTEND_URL
-              value: "http://127.0.0.1:53864"
+              value: "http://127.0.0.1:55513"
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_STRICT_HTTPS
