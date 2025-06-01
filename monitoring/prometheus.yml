@@ -5,19 +5,19 @@ scrape_configs:
   - job_name: 'userservice'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['userservice:8081']
+      - targets: ['userservice-service:8081']
 
   - job_name: 'eventservice'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['eventservice:8082']
+      - targets: ['eventservice-service:8082']
 
   - job_name: 'rsvpservice'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: ['rsvpservice:8084']
+      - targets: ['rsvpservice-service:8084']
 
   - job_name: 'apigateway'
     metrics_path: '/actuator/prometheus'
     static_configs:
-      - targets: [ 'apigateway:8080' ]
+      - targets: [ 'apigateway-service:8080' ]

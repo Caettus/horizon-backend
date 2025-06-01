@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-sa
+  namespace: default # Of de namespace waar Prometheus draait
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-cr
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/proxy
+      - nodes/metrics
+      - services
+      - endpoints
+      - pods
+      - configmaps # Nodig als je Prometheus config via ConfigMap beheert
+    verbs: ["get", "list", "watch"]
+  - apiGroups:
+      - "discovery.k8s.io"
+    resources:
+      - "endpointslices"
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["networking.k8s.io"]
+    resources:
+      - ingresses
+    verbs: ["get", "list", "watch"]
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-crb
+subjects:
+  - kind: ServiceAccount
+    name: prometheus-sa # Gebruik de ServiceAccount die je hierboven hebt gemaakt
+    namespace: default # Zorg dat dit dezelfde namespace is
+roleRef:
+  kind: ClusterRole
+  name: prometheus-cr # Verwijs naar de ClusterRole hierboven
+  apiGroup: rbac.authorization.k8s.io 

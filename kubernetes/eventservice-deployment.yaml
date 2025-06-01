@@ -13,12 +13,23 @@ spec:
     metadata:
       labels:
         app: eventservice
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8082"
     spec:
       containers:
         - name: eventservice
           image: ghcr.io/caettus/horizon-backend/eventservice:latest
           ports:
             - containerPort: 8082
+          resources:
+            requests:
+              cpu: "250m" # 0.25 CPU core
+              memory: "256Mi" # 256 MB geheugen
+            limits:
+              cpu: "500m" # Limiteer tot 0.5 CPU core
+              memory: "512Mi" # Limiteer tot 512 MB geheugen
           env:
             - name: SPRING_DATASOURCE_URL
               valueFrom:
