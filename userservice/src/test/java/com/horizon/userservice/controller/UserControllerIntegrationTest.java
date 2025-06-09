@@ -9,6 +9,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.keycloak.admin.client.Keycloak;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,6 +23,9 @@ class UserControllerIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @MockBean
+    private Keycloak keycloak;
 
     private String baseUrl() {
         return "http://localhost:" + port + "/users";

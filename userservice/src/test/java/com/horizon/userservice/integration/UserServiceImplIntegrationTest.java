@@ -20,6 +20,27 @@ import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.dao.EmptyResultDataAccessException;
+import com.horizon.userservice.DTO.UserUpdateDTO;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.awaitility.Awaitility;
+import java.util.concurrent.TimeUnit;
+import com.horizon.userservice.event.UserRegisteredEvent;
+import com.horizon.userservice.event.UserProfileUpdatedEvent;
+import java.util.Map;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.keycloak.admin.client.Keycloak;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.time.LocalDateTime;
@@ -49,10 +70,15 @@ import static org.mockito.Mockito.never;
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE) // No need for a web server for service tests
 @ActiveProfiles("test")
+@Transactional // Rollback transactions after each test
 class UserServiceImplIntegrationTest {
 
+    @MockBean
+    private Keycloak keycloak;
+
     @Container
-    static MySQLContainer<?> mysql = new MySQLContainer<>(DockerImageName.parse("mysql:8.0"));
+    @SuppressWarnings("resource")
+    static MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql:8.0.28");
 
     @Container
     static RabbitMQContainer rabbitmq = new RabbitMQContainer(DockerImageName.parse("rabbitmq:3-management"));
@@ -68,14 +94,14 @@ class UserServiceImplIntegrationTest {
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
+        registry.add("spring.datasource.url", mySQLContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", mySQLContainer::getUsername);
+        registry.add("spring.datasource.password", mySQLContainer::getPassword);
         registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
         registry.add("spring.jpa.properties.hibernate.dialect", () -> "org.hibernate.dialect.MySQLDialect");
-        registry.add("spring.flyway.url", mysql::getJdbcUrl); // If using Flyway
-        registry.add("spring.flyway.user", mysql::getUsername);
-        registry.add("spring.flyway.password", mysql::getPassword);
+        registry.add("spring.flyway.url", mySQLContainer::getJdbcUrl); // If using Flyway
+        registry.add("spring.flyway.user", mySQLContainer::getUsername);
+        registry.add("spring.flyway.password", mySQLContainer::getPassword);
 
         registry.add("spring.rabbitmq.host", rabbitmq::getHost);
         registry.add("spring.rabbitmq.port", rabbitmq::getAmqpPort);
@@ -86,13 +112,13 @@ class UserServiceImplIntegrationTest {
     
     @BeforeAll
     static void beforeAll() {
-        mysql.start();
+        mySQLContainer.start();
         rabbitmq.start();
     }
 
     @AfterAll
     static void afterAll() {
-        mysql.stop();
+        mySQLContainer.stop();
         rabbitmq.stop();
     }
 

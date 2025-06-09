@@ -17,3 +17,8 @@ spring:
     listener:
       simple:
         auto-startup: false # Prevent listeners from starting automatically for all tests
+keycloak:
+  auth-server-url: http://localhost:8080/auth
+  realm: horizon-realm
+  client-id: horizon-backend
+  client-secret: secret

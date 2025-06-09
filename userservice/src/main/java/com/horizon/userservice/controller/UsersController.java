@@ -6,6 +6,9 @@ import com.horizon.userservice.DTO.UserUpdateDTO;
 import com.horizon.userservice.DTO.UserSyncRequestDTO;
 import com.horizon.userservice.Interface.UserService;
 import com.horizon.userservice.model.User;
+import com.horizon.userservice.event.UserDeletionRequestedEvent;
+import com.horizon.userservice.saga.UserDeletionSaga;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,10 +27,12 @@ import java.util.stream.Collectors;
 public class UsersController {
 
     private final UserService userService;
+    private final UserDeletionSaga userDeletionSaga;
 
     @Autowired
-    public UsersController(UserService userService) {
+    public UsersController(UserService userService, UserDeletionSaga userDeletionSaga) {
         this.userService = userService;
+        this.userDeletionSaga = userDeletionSaga;
     }
 
     @GetMapping("/{id}")
@@ -55,6 +60,14 @@ public class UsersController {
     public ResponseEntity<Void> deleteUser(@PathVariable int id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMyUser(@AuthenticationPrincipal Jwt jwt) {
+        String keycloakId = jwt.getSubject();
+        UserDeletionRequestedEvent event = new UserDeletionRequestedEvent(keycloakId);
+        userDeletionSaga.startSaga(event);
+        return ResponseEntity.accepted().build();
     }
 
     @GetMapping("/keycloak/{keycloakId}")

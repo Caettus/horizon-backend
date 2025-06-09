@@ -9,13 +9,16 @@ public class RabbitMQConfig {
 
     // Exchange to listen to
     public static final String USERS_EXCHANGE_NAME = "horizon.users.exchange"; // Must match UserService exchange
+    public static final String USER_DELETION_EXCHANGE_NAME = "user.deletion.exchange";
 
     // Queue for RsvpService to consume user events
     public static final String RSVP_USER_EVENTS_QUEUE_NAME = "rsvp.service.user.updates.queue"; // From UserEventListener
+    public static final String USER_DELETION_REQUESTED_QUEUE = "user.deletion.requested.rsvpservice.queue";
 
     // Routing keys to bind for
     public static final String USER_REGISTERED_ROUTING_KEY = "user.registered";
     public static final String USER_PROFILE_UPDATED_ROUTING_KEY = "user.profile.updated";
+    public static final String USER_DELETION_REQUESTED_ROUTING_KEY = "user.deletion.requested";
 
     @Bean
     TopicExchange usersExchange() {
@@ -26,9 +29,19 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    TopicExchange userDeletionExchange() {
+        return new TopicExchange(USER_DELETION_EXCHANGE_NAME);
+    }
+
+    @Bean
     Queue rsvpUserEventsQueue() {
         // Durable queue (true by default)
         return new Queue(RSVP_USER_EVENTS_QUEUE_NAME);
+    }
+
+    @Bean
+    Queue userDeletionRequestedQueue() {
+        return new Queue(USER_DELETION_REQUESTED_QUEUE);
     }
 
     @Bean
@@ -39,6 +52,11 @@ public class RabbitMQConfig {
     @Bean
     Binding userProfileUpdatedBinding(Queue rsvpUserEventsQueue, TopicExchange usersExchange) {
         return BindingBuilder.bind(rsvpUserEventsQueue).to(usersExchange).with(USER_PROFILE_UPDATED_ROUTING_KEY);
+    }
+
+    @Bean
+    Binding userDeletionBinding(Queue userDeletionRequestedQueue, TopicExchange userDeletionExchange) {
+        return BindingBuilder.bind(userDeletionRequestedQueue).to(userDeletionExchange).with(USER_DELETION_REQUESTED_ROUTING_KEY);
     }
 
     // Future: If NotificationService is added, it would have a similar configuration for its own queue

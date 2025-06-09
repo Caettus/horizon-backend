@@ -6,6 +6,7 @@ import com.horizon.eventservice.Interface.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +35,7 @@ public class EventsController {
     @PostMapping
     public ResponseEntity<Event> createEvent(@RequestBody EventCreateDTO createDTO) {
         Event event = eventService.createEvent(createDTO);
-        return ResponseEntity.ok(event);
+        return new ResponseEntity<>(event, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -47,11 +48,7 @@ public class EventsController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(@PathVariable UUID id) {
-        Optional<EventResponseDTO> eventOptional = eventService.getEventById(id)
-                .map(dto -> {
-                    eventService.deleteEventById(id);
-                    return dto;
-                });
-        return eventOptional.isPresent() ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+        eventService.deleteEventById(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -20,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.security.test.context.support.WithMockUser;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -27,7 +30,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 
 @Testcontainers
@@ -64,6 +67,7 @@ public class EventsControllerIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
+    @WithMockUser(username="testuser")
     public void testCRUDOperationsForEventsController() throws Exception {
         // --- CREATE an event ---
         EventCreateDTO createDTO = new EventCreateDTO();
@@ -80,10 +84,11 @@ public class EventsControllerIntegrationTest {
 
         String createJson = objectMapper.writeValueAsString(createDTO);
 
-        MvcResult createResult = mockMvc.perform(post("/events")
+        MvcResult createResult = mockMvc.perform(post("/events").with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createJson))
-                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.title").value("Test Event"))
                 .andReturn();
@@ -116,7 +121,7 @@ public class EventsControllerIntegrationTest {
 
         String updateJson = objectMapper.writeValueAsString(updateDTO);
 
-        mockMvc.perform(put("/events/{id}", eventId)
+        mockMvc.perform(put("/events/{id}", eventId).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateJson))
                 .andExpect(status().isOk())
@@ -124,7 +129,7 @@ public class EventsControllerIntegrationTest {
                 .andExpect(jsonPath("$.description").value("Updated description"));
 
         // --- DELETE the event ---
-        mockMvc.perform(delete("/events/{id}", eventId))
+        mockMvc.perform(delete("/events/{id}", eventId).with(csrf()))
                 .andExpect(status().isNoContent());
 
         // --- VERIFY deletion ---

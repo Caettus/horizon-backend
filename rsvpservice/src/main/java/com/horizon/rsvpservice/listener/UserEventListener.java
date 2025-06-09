@@ -2,11 +2,13 @@ package com.horizon.rsvpservice.listener;
 
 import com.horizon.rsvpservice.event.UserRegisteredEvent;
 import com.horizon.rsvpservice.event.UserProfileUpdatedEvent;
+import com.horizon.rsvpservice.event.UserDeletionRequestedEvent;
 import com.horizon.rsvpservice.model.Rsvp;
 import com.horizon.rsvpservice.repository.RsvpRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,10 +23,12 @@ public class UserEventListener {
     public static final String RSVP_USER_EVENTS_QUEUE = "rsvp.service.user.updates.queue"; // As per plan
 
     private final RsvpRepository rsvpRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     @Autowired
-    public UserEventListener(RsvpRepository rsvpRepository) {
+    public UserEventListener(RsvpRepository rsvpRepository, RabbitTemplate rabbitTemplate) {
         this.rsvpRepository = rsvpRepository;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @RabbitListener(queues = RSVP_USER_EVENTS_QUEUE)
@@ -103,5 +107,26 @@ public class UserEventListener {
         } else {
             LOGGER.info("UserProfileUpdatedEvent for user {} did not contain a username update.", keycloakId);
         }
+    }
+
+    @RabbitListener(queues = "user.deletion.requested.rsvpservice.queue")
+    public void handleUserDeletionRequested(UserDeletionRequestedEvent event) {
+        LOGGER.info("Received UserDeletionRequestedEvent: {}", event);
+        if (event == null || event.getKeycloakId() == null) {
+            LOGGER.warn("Received incomplete UserDeletionRequestedEvent: {}", event);
+            return;
+        }
+
+        String keycloakId = event.getKeycloakId();
+        List<Rsvp> rsvps = rsvpRepository.findByUserId(keycloakId);
+        if (rsvps != null && !rsvps.isEmpty()) {
+            LOGGER.info("Found {} RSVPs for user {} to delete.", rsvps.size(), keycloakId);
+            rsvpRepository.deleteAll(rsvps);
+            LOGGER.info("Finished deleting RSVPs for user {}.", keycloakId);
+        } else {
+            LOGGER.info("No existing RSVPs found for user {} to delete.", keycloakId);
+        }
+
+        rabbitTemplate.convertAndSend("user.deletion.exchange", "user.deletion.rsvps.confirmed", event.getKeycloakId());
     }
 } 
