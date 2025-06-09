@@ -15,6 +15,9 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -84,6 +87,30 @@ public class UserDeletionSaga {
         handleConfirmation(keycloakId, "rsvps");
     }
 
+    @RabbitListener(queues = "user.deletion.events.failed")
+    public void onEventsFailed(String keycloakId) {
+        handleFailure(keycloakId, "events");
+    }
+
+    @RabbitListener(queues = "user.deletion.rsvps.failed")
+    public void onRsvpsFailed(String keycloakId) {
+        handleFailure(keycloakId, "rsvps");
+    }
+
+    private void handleFailure(String keycloakId, String service) {
+        logger.error("Received failure from service: {} for keycloakId: {}. Marking saga as FAILED.", service, keycloakId);
+        sagaStateRepository.findBySagaId(keycloakId).ifPresent(sagaState -> {
+            if (sagaState.getStatus() == SagaStatus.FAILED || sagaState.getStatus() == SagaStatus.COMPLETED) {
+                logger.warn("Received failure for a saga that is already terminated. SagaId: {}, Status: {}", keycloakId, sagaState.getStatus());
+                return;
+            }
+            sagaState.setStatus(SagaStatus.FAILED);
+            sagaState.setFailureReason("Service '" + service + "' reported failure.");
+            sagaStateRepository.save(sagaState);
+            triggerAlert(sagaState);
+        });
+    }
+
     private void handleConfirmation(String keycloakId, String service) {
         logger.info("Received confirmation from service: {} for keycloakId: {}", service, keycloakId);
         sagaStateRepository.findBySagaId(keycloakId).ifPresent(sagaState -> {
@@ -114,34 +141,52 @@ public class UserDeletionSaga {
         });
     }
 
+    @Retryable(
+        value = { Exception.class },
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 2000, multiplier = 2)
+    )
     private void completeSaga(UserDeletionSagaState sagaState) {
         String keycloakId = sagaState.getSagaId();
-        try {
-            // Delete from Keycloak
-            RealmResource realmResource = keycloak.realm("horizon-realm");
-            UsersResource usersResource = realmResource.users();
-            usersResource.delete(keycloakId);
-            logger.info("User {} deleted from Keycloak.", keycloakId);
+        logger.info("Attempting to complete saga for keycloakId: {}", keycloakId);
+        
+        // This method will now rethrow exceptions to trigger the retry mechanism.
+        // The @Recover method will handle the final failure.
 
-            // Delete from user service DB
-            userDAL.findByKeycloakId(keycloakId).ifPresent(user -> {
-                userDAL.delete(user);
-                logger.info("User {} deleted from user service database.", keycloakId);
-            });
+        // Delete from Keycloak
+        RealmResource realmResource = keycloak.realm("horizon-realm");
+        UsersResource usersResource = realmResource.users();
+        usersResource.delete(keycloakId);
+        logger.info("User {} deleted from Keycloak.", keycloakId);
 
-            // Publish confirmation event
-            rabbitTemplate.convertAndSend(UserDeletionRabbitMQConfig.EXCHANGE_NAME, "user.deletion.confirmed", new UserDeletionConfirmedEvent(keycloakId));
-            logger.info("Published UserDeletionConfirmedEvent for {}", keycloakId);
+        // Delete from user service DB
+        userDAL.findByKeycloakId(keycloakId).ifPresent(user -> {
+            userDAL.delete(user);
+            logger.info("User {} deleted from user service database.", keycloakId);
+        });
 
-            sagaState.setStatus(SagaStatus.COMPLETED);
+        // Publish confirmation event
+        rabbitTemplate.convertAndSend(UserDeletionRabbitMQConfig.EXCHANGE_NAME, "user.deletion.confirmed", new UserDeletionConfirmedEvent(keycloakId));
+        logger.info("Published UserDeletionConfirmedEvent for {}", keycloakId);
 
-        } catch (Exception e) {
-            logger.error("Error during final user deletion for {}: {}. Saga marked as FAILED.", keycloakId, e.getMessage(), e);
-            sagaState.setStatus(SagaStatus.FAILED);
-            // Here you would trigger alerts or move the message to a Dead-Letter Queue (DLQ) for manual intervention.
-        } finally {
-            sagaStateRepository.save(sagaState);
-        }
+        sagaState.setStatus(SagaStatus.COMPLETED);
+        sagaStateRepository.save(sagaState);
+    }
+
+    @Recover
+    private void recoverCompleteSaga(Exception e, UserDeletionSagaState sagaState) {
+        String keycloakId = sagaState.getSagaId();
+        logger.error("Final attempt to complete saga for {} failed after multiple retries: {}. Marking as FAILED.", keycloakId, e.getMessage(), e);
+        sagaState.setStatus(SagaStatus.FAILED);
+        sagaState.setFailureReason("Final deletion step failed after multiple retries: " + e.getMessage());
+        sagaStateRepository.save(sagaState);
+        triggerAlert(sagaState);
+    }
+
+    private void triggerAlert(UserDeletionSagaState sagaState) {
+        logger.warn("ALERT: Saga {} failed. Reason: {}. Manual intervention required.", sagaState.getSagaId(), sagaState.getFailureReason());
+        // In a real system, this would publish to a dedicated alerting queue, send an email, or create a ticket.
+        rabbitTemplate.convertAndSend("user.deletion.saga.failed", "", sagaState);
     }
 
     @Scheduled(fixedRateString = "${saga.deletion.timeout-check-rate-ms:300000}") // Run every 5 minutes by default
@@ -154,8 +199,9 @@ public class UserDeletionSaga {
         for (UserDeletionSagaState saga : timedOutSagas) {
             logger.warn("Saga for keycloakId: {} has timed out. Marking as FAILED.", saga.getSagaId());
             saga.setStatus(SagaStatus.FAILED);
+            saga.setFailureReason("Saga timed out waiting for confirmations.");
             sagaStateRepository.save(saga);
-            // Trigger compensation or alerting logic here.
+            triggerAlert(saga);
         }
     }
 } 

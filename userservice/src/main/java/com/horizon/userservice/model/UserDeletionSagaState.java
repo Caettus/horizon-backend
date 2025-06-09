@@ -24,6 +24,8 @@ public class UserDeletionSagaState {
 
     private String confirmedServices; // Comma-separated list of services
 
+    private String failureReason;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

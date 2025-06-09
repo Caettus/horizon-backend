@@ -57,10 +57,9 @@ public class UserEventListener {
             logger.info("Confirmed user deletion for keycloakId: {}", keycloakId);
 
         } catch (Exception e) {
-            logger.error("Error processing user deletion for keycloakId: {}. Sending to DLQ (simulation).", keycloakId, e);
-            // In a real scenario, you would publish to a Dead-Letter Queue (DLQ)
-            // rabbitTemplate.convertAndSend("user.deletion.dlq.exchange", "user.deletion.events.failed", event);
-            throw e; // Rethrow to trigger transaction rollback and message requeue/DLQ
+            logger.error("Error processing user deletion for keycloakId: {}. Sending failure event.", keycloakId, e);
+            rabbitTemplate.convertAndSend("user.deletion.exchange", "user.deletion.events.failed", keycloakId);
+            // We do not rethrow, to avoid the message being requeued. The saga will handle the failure.
         }
     }
 } 

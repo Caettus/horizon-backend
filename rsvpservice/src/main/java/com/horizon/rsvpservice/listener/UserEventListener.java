@@ -11,6 +11,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ public class UserEventListener {
     }
 
     @RabbitListener(queues = RSVP_USER_EVENTS_QUEUE)
+    @Transactional
     public void handleUserRegisteredEvent(UserRegisteredEvent event) {
         LOGGER.info("Received UserRegisteredEvent: {}", event);
         if (event == null || event.getKeycloakId() == null || event.getUsername() == null) {
@@ -42,17 +44,8 @@ public class UserEventListener {
         String keycloakId = event.getKeycloakId();
         String displayName = event.getUsername(); // Username from event is the displayName
 
-        List<Rsvp> rsvps = rsvpRepository.findByUserId(keycloakId);
-        if (rsvps != null && !rsvps.isEmpty()) {
-            LOGGER.info("Found {} RSVPs for user {} to update displayName.", rsvps.size(), keycloakId);
-            for (Rsvp rsvp : rsvps) {
-                rsvp.setUserDisplayName(displayName);
-                rsvpRepository.save(rsvp);
-            }
-            LOGGER.info("Finished updating displayNames for user {} from UserRegisteredEvent.", keycloakId);
-        } else {
-            LOGGER.info("No existing RSVPs found for user {} upon registration event.", keycloakId);
-        }
+        rsvpRepository.updateUserDisplayName(keycloakId, displayName);
+        LOGGER.info("Updated displayNames for user {} from UserRegisteredEvent.", keycloakId);
     }
 
     // To listen to multiple event types on the same queue, you might need separate methods
@@ -68,6 +61,7 @@ public class UserEventListener {
     // for the converter, or that their JSON structures are uniquely identifiable by the converter.
 
     @RabbitListener(queues = RSVP_USER_EVENTS_QUEUE) // Listening on the same queue
+    @Transactional
     public void handleUserProfileUpdatedEvent(UserProfileUpdatedEvent event) {
         LOGGER.info("Received UserProfileUpdatedEvent: {}", event);
         if (event == null || event.getKeycloakId() == null || event.getUpdatedFields() == null || event.getUpdatedFields().isEmpty()) {
@@ -87,17 +81,8 @@ public class UserEventListener {
 
                 if (newUsername != null) {
                     LOGGER.info("Username updated for user {}. New username: {}", keycloakId, newUsername);
-                    List<Rsvp> rsvps = rsvpRepository.findByUserId(keycloakId);
-                    if (rsvps != null && !rsvps.isEmpty()) {
-                        LOGGER.info("Found {} RSVPs for user {} to update displayName.", rsvps.size(), keycloakId);
-                        for (Rsvp rsvp : rsvps) {
-                            rsvp.setUserDisplayName(newUsername);
-                            rsvpRepository.save(rsvp);
-                        }
-                        LOGGER.info("Finished updating displayNames for user {} from UserProfileUpdatedEvent.", keycloakId);
-                    } else {
-                        LOGGER.info("No RSVPs found for user {} to update displayName from UserProfileUpdatedEvent.", keycloakId);
-                    }
+                    rsvpRepository.updateUserDisplayName(keycloakId, newUsername);
+                    LOGGER.info("Finished updating displayNames for user {} from UserProfileUpdatedEvent.", keycloakId);
                 } else {
                     LOGGER.warn("New username is null in UserProfileUpdatedEvent for user {}.", keycloakId);
                 }
@@ -110,23 +95,25 @@ public class UserEventListener {
     }
 
     @RabbitListener(queues = "user.deletion.requested.rsvpservice.queue")
+    @Transactional
     public void handleUserDeletionRequested(UserDeletionRequestedEvent event) {
         LOGGER.info("Received UserDeletionRequestedEvent: {}", event);
         if (event == null || event.getKeycloakId() == null) {
             LOGGER.warn("Received incomplete UserDeletionRequestedEvent: {}", event);
+            // Consider sending a negative acknowledgement or logging to a specific error queue
             return;
         }
 
         String keycloakId = event.getKeycloakId();
-        List<Rsvp> rsvps = rsvpRepository.findByUserId(keycloakId);
-        if (rsvps != null && !rsvps.isEmpty()) {
-            LOGGER.info("Found {} RSVPs for user {} to delete.", rsvps.size(), keycloakId);
-            rsvpRepository.deleteAll(rsvps);
-            LOGGER.info("Finished deleting RSVPs for user {}.", keycloakId);
-        } else {
-            LOGGER.info("No existing RSVPs found for user {} to delete.", keycloakId);
+        
+        try {
+            rsvpRepository.deleteByUserId(keycloakId);
+            LOGGER.info("Successfully deleted RSVPs for user {}.", keycloakId);
+            rabbitTemplate.convertAndSend("user.deletion.exchange", "user.deletion.rsvps.confirmed", event.getKeycloakId());
+        } catch (Exception e) {
+            LOGGER.error("Failed to delete RSVPs for user {}: {}", keycloakId, e.getMessage());
+            // Send a failure event
+            rabbitTemplate.convertAndSend("user.deletion.exchange", "user.deletion.rsvps.failed", event.getKeycloakId());
         }
-
-        rabbitTemplate.convertAndSend("user.deletion.exchange", "user.deletion.rsvps.confirmed", event.getKeycloakId());
     }
 } 
