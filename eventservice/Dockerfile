@@ -16,6 +16,6 @@ RUN ./gradlew clean build -x test --no-daemon
 # ---- STAGE 2: Run ----
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=builder /app/build/libs/*.jar userservice.jar
+COPY --from=builder /app/build/libs/*.jar eventservice.jar
 EXPOSE 8082
 ENTRYPOINT ["java", "-jar", "/app/userservice.jar"]

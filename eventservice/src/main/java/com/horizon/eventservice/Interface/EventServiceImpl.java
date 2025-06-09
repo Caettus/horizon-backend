@@ -89,6 +89,7 @@ public class EventServiceImpl implements EventService {
         if (updateDTO.getCategory() != null)    event.setCategory(updateDTO.getCategory());
         if (updateDTO.getTags() != null)        event.setTags(updateDTO.getTags());
         if (updateDTO.getPrivate() != null)     event.setPrivate(updateDTO.getPrivate());
+        if (updateDTO.getImageUrl() != null)   event.setImageUrl(updateDTO.getImageUrl());
 
         event.setUpdatedAt(LocalDateTime.now());
         return Optional.of(eventDAL.save(event));
@@ -111,6 +112,7 @@ public class EventServiceImpl implements EventService {
         dto.setTags(event.getTags());
         dto.setPrivate(event.isPrivate());
         dto.setOrganizerId(event.getOrganizerId());
+        dto.setImageUrl(event.getImageUrl());
         return dto;
     }
 }

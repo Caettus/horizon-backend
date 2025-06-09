@@ -14,6 +14,7 @@ public class EventUpdateDTO {
     private String category;
     private List<String> tags;
     private Boolean isPrivate;
+    private String imageUrl;
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
@@ -41,4 +42,7 @@ public class EventUpdateDTO {
 
     public Boolean getPrivate() { return isPrivate; }
     public void setPrivate(Boolean isPrivate) { this.isPrivate = isPrivate; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

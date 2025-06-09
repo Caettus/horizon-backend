@@ -15,6 +15,7 @@ public class EventResponseDTO {
     private List<String> tags;
     private boolean isPrivate;
     private UUID organizerId;
+    private String imageUrl;
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
@@ -45,4 +46,7 @@ public class EventResponseDTO {
 
     public UUID getOrganizerId() { return organizerId; }
     public void setOrganizerId(UUID organizerId) { this.organizerId = organizerId; }
+    
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }
