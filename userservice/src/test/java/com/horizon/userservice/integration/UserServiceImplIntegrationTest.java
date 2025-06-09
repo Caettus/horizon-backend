@@ -8,6 +8,8 @@ import com.horizon.userservice.model.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.testcontainers.DockerClientFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -67,21 +69,28 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
 
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE) // No need for a web server for service tests
 @ActiveProfiles("test")
 @Transactional // Rollback transactions after each test
 class UserServiceImplIntegrationTest {
+
+    private static final boolean dockerAvailable = DockerClientFactory.instance().isDockerAvailable();
+
+    @BeforeAll
+    static void checkDocker() {
+        Assumptions.assumeTrue(dockerAvailable, "Docker is not available");
+    }
 
     @MockBean
     private Keycloak keycloak;
 
     @Container
     @SuppressWarnings("resource")
-    static MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql:8.0.28");
+    static MySQLContainer<?> mySQLContainer = dockerAvailable ? new MySQLContainer<>("mysql:8.0.28") : null;
 
     @Container
-    static RabbitMQContainer rabbitmq = new RabbitMQContainer(DockerImageName.parse("rabbitmq:3-management"));
+    static RabbitMQContainer rabbitmq = dockerAvailable ? new RabbitMQContainer(DockerImageName.parse("rabbitmq:3-management")) : null;
 
     @Autowired
     private UserService userService;
@@ -94,32 +103,38 @@ class UserServiceImplIntegrationTest {
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", mySQLContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", mySQLContainer::getUsername);
-        registry.add("spring.datasource.password", mySQLContainer::getPassword);
-        registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
-        registry.add("spring.jpa.properties.hibernate.dialect", () -> "org.hibernate.dialect.MySQLDialect");
-        registry.add("spring.flyway.url", mySQLContainer::getJdbcUrl); // If using Flyway
-        registry.add("spring.flyway.user", mySQLContainer::getUsername);
-        registry.add("spring.flyway.password", mySQLContainer::getPassword);
+        if (dockerAvailable) {
+            registry.add("spring.datasource.url", mySQLContainer::getJdbcUrl);
+            registry.add("spring.datasource.username", mySQLContainer::getUsername);
+            registry.add("spring.datasource.password", mySQLContainer::getPassword);
+            registry.add("spring.datasource.driver-class-name", () -> "com.mysql.cj.jdbc.Driver");
+            registry.add("spring.jpa.properties.hibernate.dialect", () -> "org.hibernate.dialect.MySQLDialect");
+            registry.add("spring.flyway.url", mySQLContainer::getJdbcUrl); // If using Flyway
+            registry.add("spring.flyway.user", mySQLContainer::getUsername);
+            registry.add("spring.flyway.password", mySQLContainer::getPassword);
 
-        registry.add("spring.rabbitmq.host", rabbitmq::getHost);
-        registry.add("spring.rabbitmq.port", rabbitmq::getAmqpPort);
-        registry.add("spring.rabbitmq.username", rabbitmq::getAdminUsername);
-        registry.add("spring.rabbitmq.password", rabbitmq::getAdminPassword);
-        registry.add("spring.rabbitmq.virtual-host", () -> "/");
+            registry.add("spring.rabbitmq.host", rabbitmq::getHost);
+            registry.add("spring.rabbitmq.port", rabbitmq::getAmqpPort);
+            registry.add("spring.rabbitmq.username", rabbitmq::getAdminUsername);
+            registry.add("spring.rabbitmq.password", rabbitmq::getAdminPassword);
+            registry.add("spring.rabbitmq.virtual-host", () -> "/");
+        }
     }
     
     @BeforeAll
     static void beforeAll() {
-        mySQLContainer.start();
-        rabbitmq.start();
+        if (dockerAvailable) {
+            mySQLContainer.start();
+            rabbitmq.start();
+        }
     }
 
     @AfterAll
     static void afterAll() {
-        mySQLContainer.stop();
-        rabbitmq.stop();
+        if (dockerAvailable) {
+            mySQLContainer.stop();
+            rabbitmq.stop();
+        }
     }
 
     private RabbitAdmin rabbitAdmin;

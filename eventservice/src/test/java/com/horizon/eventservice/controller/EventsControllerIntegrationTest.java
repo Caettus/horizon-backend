@@ -5,6 +5,9 @@ import com.horizon.eventservice.DTO.EventResponseDTO;
 import com.horizon.eventservice.DTO.EventUpdateDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Assumptions;
+import org.testcontainers.DockerClientFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
@@ -33,7 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureTestDatabase(replace = Replace.ANY)
@@ -46,10 +49,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @Transactional
 public class EventsControllerIntegrationTest {
 
+    private static final boolean dockerAvailable = DockerClientFactory.instance().isDockerAvailable();
+
+    @BeforeAll
+    static void checkDocker() {
+        Assumptions.assumeTrue(dockerAvailable, "Docker is not available");
+    }
+
     @Container
-    static RabbitMQContainer rabbit = new RabbitMQContainer("rabbitmq:3.13-management")
-            .withUser("guest", "guest", Set.of("administrator"))
-            .withPluginsEnabled("rabbitmq_management");
+    static RabbitMQContainer rabbit = dockerAvailable ?
+            new RabbitMQContainer("rabbitmq:3.13-management")
+                .withUser("guest", "guest", Set.of("administrator"))
+                .withPluginsEnabled("rabbitmq_management")
+            : null;
 
 
     @DynamicPropertySource

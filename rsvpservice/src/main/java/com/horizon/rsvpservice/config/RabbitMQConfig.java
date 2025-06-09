@@ -1,6 +1,8 @@
 package com.horizon.rsvpservice.config;
 
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -57,6 +59,11 @@ public class RabbitMQConfig {
     @Bean
     Binding userDeletionBinding(Queue userDeletionRequestedQueue, TopicExchange userDeletionExchange) {
         return BindingBuilder.bind(userDeletionRequestedQueue).to(userDeletionExchange).with(USER_DELETION_REQUESTED_ROUTING_KEY);
+    }
+
+    @Bean
+    MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
     }
 
     // Future: If NotificationService is added, it would have a similar configuration for its own queue
