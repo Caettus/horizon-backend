@@ -3,17 +3,20 @@ package com.horizon.eventservice.listener;
 import com.horizon.eventservice.DAL.EventDAL;
 import com.horizon.eventservice.event.UserDeletionRequestedEvent;
 import com.horizon.eventservice.model.Event;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 
 @Component
 public class UserEventListener {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserEventListener.class);
     private final EventDAL eventDAL;
     private final RabbitTemplate rabbitTemplate;
 
@@ -24,21 +27,40 @@ public class UserEventListener {
     }
 
     @RabbitListener(queues = "user.deletion.requested.eventservice.queue")
+    @Transactional
     public void handleUserDeletionRequested(UserDeletionRequestedEvent event) {
-        UUID userId = UUID.fromString(event.getKeycloakId());
+        String keycloakId = event.getKeycloakId();
+        logger.info("Handling user deletion request for keycloakId: {}", keycloakId);
 
-        List<Event> events = eventDAL.findAll();
-        for (Event e : events) {
-            if (e.getOrganizerId().equals(userId)) {
-                eventDAL.delete(e);
-            } else {
-                e.getAllowedUsers().remove(userId);
-                e.getAttendees().remove(userId);
-                e.getWaitlist().remove(userId);
-                eventDAL.save(e);
+        try {
+            // Delete all events organized by the user
+            eventDAL.deleteByOrganizerId(keycloakId);
+            logger.info("Deleted events organized by user {}", keycloakId);
+
+            // Find all events where the user is a participant (attendee, waitlisted, or allowed)
+            List<Event> participantEvents = eventDAL.findEventsWithUserAsParticipant(keycloakId);
+
+            // Remove the user from the collections in the found events
+            for (Event e : participantEvents) {
+                boolean modified = e.getAttendees().remove(keycloakId);
+                modified |= e.getWaitlist().remove(keycloakId);
+                modified |= e.getAllowedUsers().remove(keycloakId);
+
+                if (modified) {
+                    eventDAL.save(e);
+                }
             }
-        }
+            logger.info("Removed user {} from all event participation lists", keycloakId);
 
-        rabbitTemplate.convertAndSend("user.deletion.exchange", "user.deletion.events.confirmed", event.getKeycloakId());
+            // Confirm that the deletion process for this service is complete
+            rabbitTemplate.convertAndSend("user.deletion.exchange", "user.deletion.events.confirmed", keycloakId);
+            logger.info("Confirmed user deletion for keycloakId: {}", keycloakId);
+
+        } catch (Exception e) {
+            logger.error("Error processing user deletion for keycloakId: {}. Sending to DLQ (simulation).", keycloakId, e);
+            // In a real scenario, you would publish to a Dead-Letter Queue (DLQ)
+            // rabbitTemplate.convertAndSend("user.deletion.dlq.exchange", "user.deletion.events.failed", event);
+            throw e; // Rethrow to trigger transaction rollback and message requeue/DLQ
+        }
     }
 } 
