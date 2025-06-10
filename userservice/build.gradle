@@ -33,7 +33,7 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.keycloak:keycloak-admin-client:26.0.8'
+    implementation 'org.keycloak:keycloak-admin-client:24.0.4'
     implementation 'org.keycloak:keycloak-core:26.1.3'
     implementation 'org.keycloak:keycloak-common:26.0.8'
 
@@ -51,6 +51,9 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:mysql'
     testImplementation 'org.testcontainers:rabbitmq'
+    testImplementation 'org.keycloak:keycloak-admin-client:26.0.8'
+    testImplementation 'org.keycloak:keycloak-core:26.1.3'
+    testImplementation 'org.keycloak:keycloak-common:26.0.8'
 }
 
 tasks.named('test') {

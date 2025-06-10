@@ -8,9 +8,6 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
   rabbitmq:
     host: localhost   # Default to localhost for tests not using testcontainers
     port: 5672        # Default port, will be overridden by Testcontainers
