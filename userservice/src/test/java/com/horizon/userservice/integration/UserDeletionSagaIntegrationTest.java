@@ -141,10 +141,12 @@ public class UserDeletionSagaIntegrationTest {
         assertEquals(SagaStatus.AWAITING_CONFIRMATION, initialSagaState.get().getStatus());
 
         System.out.println("Test: Simulating confirmation from eventservice...");
-        rabbitTemplate.convertAndSend("user.deletion.events.confirmed", keycloakId);
+        // *** FIX START ***
+        rabbitTemplate.convertAndSend("user.deletion.exchange", "user.deletion.events.confirmed", keycloakId);
 
         System.out.println("Test: Simulating confirmation from rsvpservice...");
-        rabbitTemplate.convertAndSend("user.deletion.rsvps.confirmed", keycloakId);
+        rabbitTemplate.convertAndSend("user.deletion.exchange", "user.deletion.rsvps.confirmed", keycloakId);
+        // *** FIX END ***
 
         Awaitility.await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(keycloak.realm("horizon-realm").users()).delete(keycloakId);
