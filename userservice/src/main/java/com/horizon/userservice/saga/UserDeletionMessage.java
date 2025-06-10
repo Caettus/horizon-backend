@@ -11,7 +11,6 @@ import java.io.Serializable;
 public class UserDeletionMessage implements Serializable {
     private String sagaId;
     private String userId;
-    // TODO: getters and setters...
 
     public UserDeletionMessage() {}
 
@@ -53,7 +52,6 @@ class SagaReplyMessage implements Serializable {
     private String sagaId;
     private String serviceName;
     private boolean success;
-    // TODO: getters and setters...
 
     public SagaReplyMessage() {}
 
