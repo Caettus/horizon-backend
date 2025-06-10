@@ -14,6 +14,8 @@ spec:
       labels:
         app: mysql-eventservice
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: mysql
           image: mysql:8.0

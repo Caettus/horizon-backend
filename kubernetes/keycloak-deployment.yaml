@@ -14,6 +14,8 @@ spec:
       labels:
         app: keycloak
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: keycloak
           image: ghcr.io/caettus/horizon-backend/keycloak:latest
