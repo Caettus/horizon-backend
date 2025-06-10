@@ -7,6 +7,7 @@ import com.horizon.userservice.model.User;
 import com.horizon.userservice.model.UserDeletionSagaState;
 import com.horizon.userservice.saga.SagaStatus;
 import com.horizon.userservice.saga.UserDeletionSaga;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +30,6 @@ import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-import org.awaitility.Awaitility;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -109,7 +109,11 @@ public class UserDeletionSagaIntegrationTest {
         UsersResource usersResource = mock(UsersResource.class);
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
-        doNothing().when(usersResource).delete(anyString());
+
+        // **FIXED**: The incorrect doNothing() line was removed.
+        // Mocks return null by default, which is fine since the return value is not used.
+        // This line makes the mock's behavior explicit.
+        when(usersResource.delete(anyString())).thenReturn(null);
     }
 
     @Test
