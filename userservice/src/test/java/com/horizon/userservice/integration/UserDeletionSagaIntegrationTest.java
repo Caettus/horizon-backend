@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import jakarta.ws.rs.core.Response;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -72,6 +73,10 @@ public class UserDeletionSagaIntegrationTest {
     @MockitoBean
     private Keycloak keycloak;
 
+    private RealmResource realmResource;
+    private UsersResource usersResource;
+
+
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", mySQLContainer::getJdbcUrl);
@@ -108,13 +113,12 @@ public class UserDeletionSagaIntegrationTest {
         sagaStateRepository.deleteAll();
         userDAL.deleteAll();
 
-        RealmResource realmResource = mock(RealmResource.class);
-        UsersResource usersResource = mock(UsersResource.class);
+        realmResource = mock(RealmResource.class);
+        usersResource = mock(UsersResource.class);
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
 
-        // Mock the delete call to do nothing to avoid NullPointerException if the call returns void
-        doNothing().when(usersResource).delete(anyString());
+        when(usersResource.delete(anyString())).thenReturn(Response.noContent().build());
     }
 
     @Test
@@ -149,8 +153,7 @@ public class UserDeletionSagaIntegrationTest {
         rabbitTemplate.convertAndSend("user.deletion.exchange", "user.deletion.rsvps.confirmed", keycloakId);
 
         Awaitility.await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
-            // Now this verification should pass
-            verify(keycloak.realm("horizon-realm").users()).delete(keycloakId);
+            verify(usersResource).delete(keycloakId);
             assertFalse(userDAL.findByKeycloakId(keycloakId).isPresent(), "User should be deleted from the database.");
             Optional<UserDeletionSagaState> finalSagaState = sagaStateRepository.findBySagaId(keycloakId);
             assertTrue(finalSagaState.isPresent(), "Final saga state should still exist.");

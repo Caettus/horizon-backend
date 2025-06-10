@@ -15,9 +15,18 @@ public class UserDeletionRabbitMQConfig {
     public static final String USER_DELETION_CONFIRMED_QUEUE = "user.deletion.confirmed.queue";
     public static final String USER_DELETION_EVENTS_CONFIRMED_QUEUE = "user.deletion.events.confirmed";
     public static final String USER_DELETION_RSVPS_CONFIRMED_QUEUE = "user.deletion.rsvps.confirmed";
+
+    // Added for failure cases
+    public static final String USER_DELETION_EVENTS_FAILED_QUEUE = "user.deletion.events.failed";
+    public static final String USER_DELETION_RSVPS_FAILED_QUEUE = "user.deletion.rsvps.failed";
+
     public static final String USER_DELETION_ROUTING_KEY = "user.deletion.#";
     public static final String USER_DELETION_EVENTS_CONFIRMED_ROUTING_KEY = "user.deletion.events.confirmed";
     public static final String USER_DELETION_RSVPS_CONFIRMED_ROUTING_KEY = "user.deletion.rsvps.confirmed";
+
+    // Added for failure cases
+    public static final String USER_DELETION_EVENTS_FAILED_ROUTING_KEY = "user.deletion.events.failed";
+    public static final String USER_DELETION_RSVPS_FAILED_ROUTING_KEY = "user.deletion.rsvps.failed";
 
     @Bean
     public TopicExchange userDeletionExchange() {
@@ -44,6 +53,17 @@ public class UserDeletionRabbitMQConfig {
         return new Queue(USER_DELETION_RSVPS_CONFIRMED_QUEUE);
     }
 
+    // Added for failure cases
+    @Bean
+    public Queue userDeletionEventsFailedQueue() {
+        return new Queue(USER_DELETION_EVENTS_FAILED_QUEUE);
+    }
+
+    @Bean
+    public Queue userDeletionRsvpsFailedQueue() {
+        return new Queue(USER_DELETION_RSVPS_FAILED_QUEUE);
+    }
+
     @Bean
     public Binding userDeletionBinding(TopicExchange userDeletionExchange, Queue userDeletionRequestedQueue) {
         return BindingBuilder.bind(userDeletionRequestedQueue).to(userDeletionExchange).with(USER_DELETION_ROUTING_KEY);
@@ -58,4 +78,15 @@ public class UserDeletionRabbitMQConfig {
     public Binding userDeletionRsvpsConfirmedBinding(TopicExchange userDeletionExchange, Queue userDeletionRsvpsConfirmedQueue) {
         return BindingBuilder.bind(userDeletionRsvpsConfirmedQueue).to(userDeletionExchange).with(USER_DELETION_RSVPS_CONFIRMED_ROUTING_KEY);
     }
-} 
+
+    // Added for failure cases
+    @Bean
+    public Binding userDeletionEventsFailedBinding(TopicExchange userDeletionExchange, Queue userDeletionEventsFailedQueue) {
+        return BindingBuilder.bind(userDeletionEventsFailedQueue).to(userDeletionExchange).with(USER_DELETION_EVENTS_FAILED_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding userDeletionRsvpsFailedBinding(TopicExchange userDeletionExchange, Queue userDeletionRsvpsFailedQueue) {
+        return BindingBuilder.bind(userDeletionRsvpsFailedQueue).to(userDeletionExchange).with(USER_DELETION_RSVPS_FAILED_ROUTING_KEY);
+    }
+}
