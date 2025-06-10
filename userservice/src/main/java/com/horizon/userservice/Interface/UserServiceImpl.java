@@ -4,12 +4,16 @@ import com.horizon.userservice.DAL.UserDAL;
 import com.horizon.userservice.DTO.UserCreateDTO;
 import com.horizon.userservice.DTO.UserResponseDTO;
 import com.horizon.userservice.DTO.UserUpdateDTO;
+import com.horizon.userservice.DTO.UserSyncRequestDTO;
 import com.horizon.userservice.event.UserProfileUpdatedEvent;
 import com.horizon.userservice.event.UserRegisteredEvent;
 import com.horizon.userservice.eventbus.EventCreatedListener;
 import com.horizon.userservice.model.User;
+import com.horizon.userservice.saga.SagaCoordinator;
 import com.horizon.userservice.saga.UserDeletionMessage;
 import com.horizon.userservice.saga.SagaRabbitMQConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,8 +24,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.HashMap;
@@ -32,18 +34,29 @@ public class UserServiceImpl implements UserService {
     private final UserDAL userDAL;
     private final RabbitTemplate rabbitTemplate;
     private final EventCreatedListener eventCreatedListener;
+    private final SagaCoordinator sagaCoordinator;
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
-    public UserServiceImpl(UserDAL userDAL, RabbitTemplate rabbitTemplate, EventCreatedListener eventCreatedListener) {
+    public UserServiceImpl(UserDAL userDAL, RabbitTemplate rabbitTemplate, EventCreatedListener eventCreatedListener, SagaCoordinator sagaCoordinator) {
         this.userDAL = userDAL;
         this.rabbitTemplate = rabbitTemplate;
         this.eventCreatedListener = eventCreatedListener;
+        this.sagaCoordinator = sagaCoordinator;
+    }
+
+    @Override
+    public UserResponseDTO getUserById(String id) {
+        User user = userDAL.findByKeycloakId(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + id)
+        );
+        return mapToResponseDTO(user);
     }
 
     @Override
     public UserResponseDTO getUserById(int id) {
         User user = userDAL.findById(id).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id)
         );
         return mapToResponseDTO(user);
     }
@@ -59,30 +72,25 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponseDTO createUser(UserCreateDTO userCreateDTO) {
         User user = new User();
-        user.setFirstname(userCreateDTO.getFirstName());
-        user.setLastname(userCreateDTO.getLastName());
+        user.setUsername(userCreateDTO.getUsername());
         user.setEmail(userCreateDTO.getEmail());
+        user.setAge(userCreateDTO.getAge());
+        user.setKeycloakId(userCreateDTO.getKeycloakId());
 
         User savedUser = userDAL.save(user);
 
-        eventPublisher.publishEvent(new UserRegisteredEvent(this, savedUser.getId(), savedUser.getFirstname(), savedUser.getLastname(), savedUser.getEmail()));
+        UserRegisteredEvent event = new UserRegisteredEvent(savedUser.getKeycloakId(), savedUser.getUsername(), savedUser.getEmail());
+        rabbitTemplate.convertAndSend("horizon.users.exchange", "user.registered", event);
 
-        return mapToUserResponseDTO(savedUser);
+        return mapToResponseDTO(savedUser);
     }
 
     @Override
     @Transactional
     public void initiateUserDeletionSaga(String userId) {
-        // 1. Check if user exists
-        userDAL.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-
-        // 2. Create a unique ID for this saga instance
+        userDAL.findByKeycloakId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + userId));
         String sagaId = UUID.randomUUID().toString();
-
-        // 3. Start the saga in the coordinator
         sagaCoordinator.startSaga(sagaId, userId);
-
-        // 4. Publish the user deletion event
         UserDeletionMessage message = new UserDeletionMessage(sagaId, userId);
         rabbitTemplate.convertAndSend(SagaRabbitMQConfig.SAGA_EXCHANGE_NAME, "", message);
         logger.info("Published user deletion event for saga {} and user {}", sagaId, userId);
@@ -92,21 +100,23 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void finalizeUserDeletion(String userId) {
         logger.info("Finalizing deletion for user {}", userId);
-        // Here you would also delete the user from Keycloak
-        userDAL.deleteById(userId);
+        User user = userDAL.findByKeycloakId(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + userId));
+        userDAL.deleteById(user.getId());
         logger.info("User {} deleted from database.", userId);
     }
 
+    @Override
+    public void syncUser(UserSyncRequestDTO syncRequest) {
+        synchronizeUser(syncRequest.getKeycloakId(), syncRequest.getUsername(), syncRequest.getEmail());
+    }
 
     @Override
     public UserResponseDTO updateUser(int id, UserUpdateDTO dto) {
         User user = userDAL.findById(id).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
         );
-
         if (dto.getEmail() != null) user.setEmail(dto.getEmail());
         if (dto.getAge() != null) user.setAge(dto.getAge());
-
         return mapToResponseDTO(userDAL.save(user));
     }
 
@@ -119,17 +129,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void deleteUser(String id) {
+        User user = userDAL.findByKeycloakId(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + id));
+        initiateUserDeletionSaga(user.getKeycloakId());
+    }
+
+    @Override
     public User synchronizeUser(String keycloakId, String username, String email) {
         if (keycloakId == null || keycloakId.trim().isEmpty()) {
-            System.err.println("keycloakId is null or empty in synchronizeUser. Skipping.");
-            return null; 
+            logger.error("keycloakId is null or empty in synchronizeUser. Skipping.");
+            return null;
         }
         if (username == null || username.trim().isEmpty()) {
-            System.err.println("username is null or empty in synchronizeUser for keycloakId: " + keycloakId + ". Skipping.");
+            logger.error("username is null or empty in synchronizeUser for keycloakId: " + keycloakId + ". Skipping.");
             return null;
         }
         if (email == null || email.trim().isEmpty()) {
-            System.err.println("email is null or empty in synchronizeUser for keycloakId: " + keycloakId + ". Skipping.");
+            logger.error("email is null or empty in synchronizeUser for keycloakId: " + keycloakId + ". Skipping.");
             return null;
         }
 
@@ -159,7 +175,7 @@ public class UserServiceImpl implements UserService {
                 if (!updatedFieldsForEvent.isEmpty()) {
                     UserProfileUpdatedEvent event = new UserProfileUpdatedEvent(userToSave.getKeycloakId(), updatedFieldsForEvent);
                     rabbitTemplate.convertAndSend("horizon.users.exchange", "user.profile.updated", event);
-                    System.out.println("Published UserProfileUpdatedEvent from synchronizeUser for keycloakId: " + userToSave.getKeycloakId() + " with fields: " + updatedFieldsForEvent.keySet());
+                    logger.info("Published UserProfileUpdatedEvent from synchronizeUser for keycloakId: " + userToSave.getKeycloakId() + " with fields: " + updatedFieldsForEvent.keySet());
                 }
             }
         } else {
@@ -172,7 +188,7 @@ public class UserServiceImpl implements UserService {
             // Publish UserRegisteredEvent
             UserRegisteredEvent event = new UserRegisteredEvent(userToSave.getKeycloakId(), userToSave.getUsername(), userToSave.getEmail());
             rabbitTemplate.convertAndSend("horizon.users.exchange", "user.registered", event);
-            System.out.println("Published UserRegisteredEvent for keycloakId: " + userToSave.getKeycloakId()); // Logging
+            logger.info("Published UserRegisteredEvent for keycloakId: " + userToSave.getKeycloakId());
         }
         return userToSave;
     }
@@ -188,8 +204,17 @@ public class UserServiceImpl implements UserService {
         if (keycloakIds == null || keycloakIds.isEmpty()) {
             return List.of();
         }
-        return userDAL.findAllByKeycloakIdIn(keycloakIds); // Use the new DAL method
+        return userDAL.findAllByKeycloakIdIn(keycloakIds);
     }
+
+    @Override
+    public UserResponseDTO updateUser(String id, UserUpdateDTO dto) {
+        User user = userDAL.findByKeycloakId(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + id));
+        if (dto.getEmail() != null) user.setEmail(dto.getEmail());
+        if (dto.getAge() != null) user.setAge(dto.getAge());
+        return mapToResponseDTO(userDAL.save(user));
+    }
+
 
     @Override
     public User updateUserByKeycloakId(String keycloakId, UserUpdateDTO userDetails) {
@@ -199,14 +224,12 @@ public class UserServiceImpl implements UserService {
 
         Map<String, Object> updatedFields = new HashMap<>();
 
-        // Email
         if (userDetails.getEmail() != null && !userDetails.getEmail().equals(user.getEmail())) {
             String oldEmail = user.getEmail();
             user.setEmail(userDetails.getEmail());
             updatedFields.put("email", Map.of("oldValue", String.valueOf(oldEmail), "newValue", user.getEmail()));
         }
 
-        // Age
         if (userDetails.getAge() != null && !userDetails.getAge().equals(user.getAge())) {
             String oldAge = user.getAge();
             user.setAge(userDetails.getAge());
@@ -217,10 +240,9 @@ public class UserServiceImpl implements UserService {
             User updatedUser = userDAL.save(user);
             UserProfileUpdatedEvent event = new UserProfileUpdatedEvent(updatedUser.getKeycloakId(), updatedFields);
             rabbitTemplate.convertAndSend("horizon.users.exchange", "user.profile.updated", event);
-            System.out.println("Published UserProfileUpdatedEvent for keycloakId: " + updatedUser.getKeycloakId() + " with fields: " + updatedFields.keySet()); // Logging
+            logger.info("Published UserProfileUpdatedEvent for keycloakId: " + updatedUser.getKeycloakId() + " with fields: " + updatedFields.keySet());
             return updatedUser;
         } else {
-            // No actual changes, just return the user as is, no event published
             return user;
         }
     }
@@ -233,25 +255,7 @@ public class UserServiceImpl implements UserService {
         dto.setAge(user.getAge());
         dto.setKeycloakId(user.getKeycloakId());
         dto.setCreatedAt(user.getCreatedAt());
-
-        // Populate eventsCreated field
-        if (user.getKeycloakId() != null) {
-            System.out.println("[UserServiceImpl] Mapping DTO for user: " + user.getUsername() + ", Keycloak ID: " + user.getKeycloakId());
-            try {
-                UUID userUuid = UUID.fromString(user.getKeycloakId());
-                System.out.println("[UserServiceImpl] Converted Keycloak ID to UUID: " + userUuid);
-                int count = eventCreatedListener.getEventCount(userUuid);
-                System.out.println("[UserServiceImpl] Fetched event count for UUID " + userUuid + ": " + count);
-                dto.setEventsCreated(count);
-            } catch (IllegalArgumentException e) {
-                System.err.println("[UserServiceImpl] Invalid KeycloakId format for user " + user.getId() + " (" + user.getUsername() + "): " + user.getKeycloakId() + ". Error: " + e.getMessage());
-                dto.setEventsCreated(0);
-            }
-        } else {
-            System.out.println("[UserServiceImpl] User " + user.getUsername() + " has null Keycloak ID.");
-            dto.setEventsCreated(0);
-        }
+        dto.setEventsCreated(user.getEventsCreatedCount());
         return dto;
     }
 }
-
