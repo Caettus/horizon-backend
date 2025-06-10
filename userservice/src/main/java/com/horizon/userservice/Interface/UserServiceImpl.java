@@ -143,7 +143,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByKeycloakId(String keycloakId) {
-        // TODO: Implement actual logic
         return userDAL.findByKeycloakId(keycloakId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + keycloakId));
     }

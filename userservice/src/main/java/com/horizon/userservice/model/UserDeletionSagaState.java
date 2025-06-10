@@ -1,6 +1,5 @@
 package com.horizon.userservice.model;
 
-import com.horizon.userservice.saga.SagaStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -20,7 +19,7 @@ public class UserDeletionSagaState {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SagaStatus status;
+    private UserDeletionSagaStatus status;
 
     private String confirmedServices; // Comma-separated list of services
 
