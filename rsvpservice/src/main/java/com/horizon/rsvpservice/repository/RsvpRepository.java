@@ -13,6 +13,7 @@ import java.util.UUID;
 public interface RsvpRepository extends JpaRepository<Rsvp, Long> {
     List<Rsvp> findByEventId(UUID eventId);
     List<Rsvp> findByUserId(String userId);
+    void deleteByUserId(String userId);
     Optional<Rsvp> findByEventIdAndUserId(UUID eventId, String userId);
     List<Rsvp> findByEventIdAndStatus(UUID eventId, RsvpStatus status);
     long countByEventIdAndStatus(UUID eventId, RsvpStatus status);

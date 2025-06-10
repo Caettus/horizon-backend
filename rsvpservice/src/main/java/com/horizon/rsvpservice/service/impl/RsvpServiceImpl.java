@@ -75,6 +75,12 @@ public class RsvpServiceImpl implements RsvpService {
     }
 
     @Override
+    @Transactional
+    public void deleteRsvpsByUserId(String userId) {
+        rsvpRepository.deleteByUserId(userId);
+    }
+
+    @Override
     public Rsvp getRsvpByEventAndUser(UUID eventId, String userId) {
         return rsvpRepository.findByEventIdAndUserId(eventId, userId)
                 .orElseThrow(() -> new EntityNotFoundException(

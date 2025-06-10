@@ -13,6 +13,7 @@ public interface RsvpService {
     Rsvp getRsvp(Long rsvpId);
     List<Rsvp> getRsvpsByEvent(UUID eventId);
     List<Rsvp> getRsvpsByUser(String userId);
+    void deleteRsvpsByUserId(String userId);
     Rsvp getRsvpByEventAndUser(UUID eventId, String userId);
     List<Rsvp> getRsvpsByEventAndStatus(UUID eventId, RsvpStatus status);
     long countRsvpsByEventAndStatus(UUID eventId, RsvpStatus status);
