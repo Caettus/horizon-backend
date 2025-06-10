@@ -56,4 +56,6 @@ spec:
             - name: SPRING_SECURITY_USER_NAME
               value: "root"
             - name: SPRING_SECURITY_USER_PASSWORD
-              value: "superSecret" 
+              value: "superSecret"
+      imagePullSecrets:
+        - name: ghcr-secret
