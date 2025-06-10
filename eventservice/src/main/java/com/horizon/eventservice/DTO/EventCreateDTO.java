@@ -13,7 +13,7 @@ public class EventCreateDTO {
     private String category;
     private List<String> tags;
     private boolean isPrivate;
-    private UUID organizerId;
+    private String organizerId;
     private String imageUrl;
 
     public String getTitle() { return title; }
@@ -40,9 +40,9 @@ public class EventCreateDTO {
     public boolean isPrivate() { return isPrivate; }
     public void setPrivate(boolean isPrivate) { this.isPrivate = isPrivate; }
 
-    public UUID getOrganizerId() { return organizerId; }
+    public String getOrganizerId() { return organizerId; }
 
-    public void setOrganizerId(UUID organizerId) { this.organizerId = organizerId; }
+    public void setOrganizerId(String organizerId) { this.organizerId = organizerId; }
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }

@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -97,6 +98,30 @@ public class EventServiceImpl implements EventService {
     @Override
     public void deleteEventById(UUID id) {
         eventDAL.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void removeUserFromAllEvents(String userId) {
+        eventDAL.deleteAllByOrganizerId(userId);
+
+        List<Event> eventsAsAttendee = eventDAL.findByAttendeesContains(userId);
+        for (Event event : eventsAsAttendee) {
+            event.getAttendees().remove(userId);
+            eventDAL.save(event);
+        }
+
+        List<Event> eventsAsWaitlisted = eventDAL.findByWaitlistContains(userId);
+        for (Event event : eventsAsWaitlisted) {
+            event.getWaitlist().remove(userId);
+            eventDAL.save(event);
+        }
+
+        List<Event> eventsAsAllowed = eventDAL.findByAllowedUsersContains(userId);
+        for (Event event : eventsAsAllowed) {
+            event.getAllowedUsers().remove(userId);
+            eventDAL.save(event);
+        }
     }
 
     private EventResponseDTO mapToDTO(Event event) {

@@ -25,7 +25,7 @@ public class Event {
     private boolean isPrivate;
 
     @ElementCollection
-    private List<UUID> allowedUsers; // voor als de event private is
+    private List<String> allowedUsers; // voor als de event private is
 
     @Enumerated(EnumType.STRING)
     private EventStatus status;
@@ -36,10 +36,10 @@ public class Event {
     private Integer maxAttendees;
 
     @ElementCollection
-    private List<UUID> attendees;
+    private List<String> attendees;
 
     @ElementCollection
-    private List<UUID> waitlist; // misschien handig idk we zullen zien
+    private List<String> waitlist; // misschien handig idk we zullen zien
 
     private String imageUrl;
 
@@ -48,7 +48,7 @@ public class Event {
     @ElementCollection
     private List<String> tags;
 
-    private UUID organizerId;
+    private String organizerId;
 
     @Enumerated(EnumType.STRING)
     private OrganizerType organizerType;
@@ -78,8 +78,8 @@ public class Event {
     public boolean isPrivate() { return isPrivate; }
     public void setPrivate(boolean isPrivate) { this.isPrivate = isPrivate; }
 
-    public List<UUID> getAllowedUsers() { return allowedUsers; }
-    public void setAllowedUsers(List<UUID> allowedUsers) { this.allowedUsers = allowedUsers; }
+    public List<String> getAllowedUsers() { return allowedUsers; }
+    public void setAllowedUsers(List<String> allowedUsers) { this.allowedUsers = allowedUsers; }
 
     public EventStatus getStatus() { return status; }
     public void setStatus(EventStatus status) { this.status = status; }
@@ -93,11 +93,11 @@ public class Event {
     public Integer getMaxAttendees() { return maxAttendees; }
     public void setMaxAttendees(Integer maxAttendees) { this.maxAttendees = maxAttendees; }
 
-    public List<UUID> getAttendees() { return attendees; }
-    public void setAttendees(List<UUID> attendees) { this.attendees = attendees; }
+    public List<String> getAttendees() { return attendees; }
+    public void setAttendees(List<String> attendees) { this.attendees = attendees; }
 
-    public List<UUID> getWaitlist() { return waitlist; }
-    public void setWaitlist(List<UUID> waitlist) { this.waitlist = waitlist; }
+    public List<String> getWaitlist() { return waitlist; }
+    public void setWaitlist(List<String> waitlist) { this.waitlist = waitlist; }
 
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
@@ -105,8 +105,8 @@ public class Event {
     public List<String> getTags() { return tags; }
     public void setTags(List<String> tags) { this.tags = tags; }
 
-    public UUID getOrganizerId() { return organizerId; }
-    public void setOrganizerId(UUID organizerId) { this.organizerId = organizerId; }
+    public String getOrganizerId() { return organizerId; }
+    public void setOrganizerId(String organizerId) { this.organizerId = organizerId; }
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
