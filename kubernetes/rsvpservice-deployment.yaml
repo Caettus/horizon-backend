@@ -54,4 +54,6 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: eventbus-secret
-                  key: rabbitmq-password 
+                  key: rabbitmq-password
+      imagePullSecrets:
+        - name: ghcr-secret

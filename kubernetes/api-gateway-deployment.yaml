@@ -18,6 +18,8 @@ spec:
         prometheus.io/path: "/actuator/prometheus"
         prometheus.io/port: "8080"
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: api-gateway
           image: ghcr.io/caettus/horizon-backend/api-gateway:latest

@@ -14,6 +14,8 @@ spec:
       labels:
         app: prometheus
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       serviceAccountName: prometheus-sa
       containers:
         - name: prometheus
