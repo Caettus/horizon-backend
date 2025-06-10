@@ -4,22 +4,26 @@ import com.horizon.userservice.DAL.UserDAL;
 import com.horizon.userservice.DTO.UserCreateDTO;
 import com.horizon.userservice.DTO.UserResponseDTO;
 import com.horizon.userservice.DTO.UserUpdateDTO;
-import com.horizon.userservice.event.UserRegisteredEvent;
 import com.horizon.userservice.event.UserProfileUpdatedEvent;
+import com.horizon.userservice.event.UserRegisteredEvent;
 import com.horizon.userservice.eventbus.EventCreatedListener;
 import com.horizon.userservice.model.User;
+import com.horizon.userservice.saga.UserDeletionMessage;
+import com.horizon.userservice.saga.SagaRabbitMQConfig;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+
+import java.util.Map;
+import java.util.Optional;
 import java.util.HashMap;
 
 @Service
@@ -52,15 +56,47 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDTO createUser(UserCreateDTO dto) {
+    @Transactional
+    public UserResponseDTO createUser(UserCreateDTO userCreateDTO) {
         User user = new User();
-        user.setUsername(dto.getUsername());
-        user.setEmail(dto.getEmail());
-        user.setAge(dto.getAge());
-        user.setKeycloakId(dto.getKeycloakId());
-        user.setCreatedAt(LocalDateTime.now());
-        return mapToResponseDTO(userDAL.save(user));
+        user.setFirstname(userCreateDTO.getFirstName());
+        user.setLastname(userCreateDTO.getLastName());
+        user.setEmail(userCreateDTO.getEmail());
+
+        User savedUser = userDAL.save(user);
+
+        eventPublisher.publishEvent(new UserRegisteredEvent(this, savedUser.getId(), savedUser.getFirstname(), savedUser.getLastname(), savedUser.getEmail()));
+
+        return mapToUserResponseDTO(savedUser);
     }
+
+    @Override
+    @Transactional
+    public void initiateUserDeletionSaga(String userId) {
+        // 1. Check if user exists
+        userDAL.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 2. Create a unique ID for this saga instance
+        String sagaId = UUID.randomUUID().toString();
+
+        // 3. Start the saga in the coordinator
+        sagaCoordinator.startSaga(sagaId, userId);
+
+        // 4. Publish the user deletion event
+        UserDeletionMessage message = new UserDeletionMessage(sagaId, userId);
+        rabbitTemplate.convertAndSend(SagaRabbitMQConfig.SAGA_EXCHANGE_NAME, "", message);
+        logger.info("Published user deletion event for saga {} and user {}", sagaId, userId);
+    }
+
+    @Override
+    @Transactional
+    public void finalizeUserDeletion(String userId) {
+        logger.info("Finalizing deletion for user {}", userId);
+        // Here you would also delete the user from Keycloak
+        userDAL.deleteById(userId);
+        logger.info("User {} deleted from database.", userId);
+    }
+
 
     @Override
     public UserResponseDTO updateUser(int id, UserUpdateDTO dto) {
@@ -143,7 +179,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByKeycloakId(String keycloakId) {
-        // TODO: Implement actual logic
         return userDAL.findByKeycloakId(keycloakId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + keycloakId));
     }
@@ -177,14 +212,6 @@ public class UserServiceImpl implements UserService {
             user.setAge(userDetails.getAge());
             updatedFields.put("age", Map.of("oldValue", String.valueOf(oldAge), "newValue", user.getAge()));
         }
-
-        // TODO: Add other updatable fields from UserUpdateDTO in a similar manner
-        // Example for a hypothetical 'displayName' field:
-        // if (userDetails.getDisplayName() != null && !userDetails.getDisplayName().equals(user.getDisplayName())) {
-        //    String oldDisplayName = user.getDisplayName();
-        //    user.setDisplayName(userDetails.getDisplayName());
-        //    updatedFields.put("displayName", Map.of("oldValue", oldDisplayName, "newValue", user.getDisplayName()));
-        // }
 
         if (!updatedFields.isEmpty()) {
             User updatedUser = userDAL.save(user);

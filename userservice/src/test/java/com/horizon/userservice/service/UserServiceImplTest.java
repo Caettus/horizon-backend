@@ -633,7 +633,4 @@ class UserServiceImplTest {
         verify(userDAL, never()).save(any(User.class));
         verify(rabbitTemplate, never()).convertAndSend(anyString(), anyString(), any(Object.class));
     }
-
-    // TODO: Add unit tests for other methods:
-    // - Test RabbitMQ interactions for event publishing methods (synchronizeUser, updateUserByKeycloakId) -> Covered for synchronizeUser & updateUserByKeycloakId
 } 

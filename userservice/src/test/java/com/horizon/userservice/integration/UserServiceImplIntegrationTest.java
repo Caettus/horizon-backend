@@ -462,10 +462,4 @@ class UserServiceImplIntegrationTest {
             userService.updateUserByKeycloakId("truly-non-existent-id-for-update", updateDetails);
         });
     }
-
-    // TODO: Add more comprehensive integration tests for other UserServiceImpl methods
-    // - getUserByKeycloakId
-    // - getUsersByKeycloakIds
-    // - updateUserByKeycloakId (verify event publishing)
-    // Consider testing event publishing with RabbitTemplate verifications (e.g. using Awaitility and RabbitAdmin or a test listener).
 } 

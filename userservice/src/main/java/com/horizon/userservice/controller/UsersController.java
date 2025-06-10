@@ -31,7 +31,7 @@ public class UsersController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> getUserDetails(@PathVariable int id) {
+    public ResponseEntity<UserResponseDTO> getUserDetails(@PathVariable String id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
@@ -40,21 +40,30 @@ public class UsersController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable String id) {
+        UserResponseDTO user = userService.getUserById(id);
+        if (user != null) {
+            return ResponseEntity.ok(user);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     @PostMapping
-    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserCreateDTO dto) {
-        UserResponseDTO created = userService.createUser(dto);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserCreateDTO userCreateDTO) {
+        UserResponseDTO newUser = userService.createUser(userCreateDTO);
+        return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable int id, @RequestBody UserUpdateDTO dto) {
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable String id, @RequestBody UserUpdateDTO dto) {
         return ResponseEntity.ok(userService.updateUser(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable int id) {
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
+        userService.initiateUserDeletionSaga(id);
+        return ResponseEntity.accepted().build();
     }
 
     @GetMapping("/keycloak/{keycloakId}")
@@ -94,6 +103,12 @@ public class UsersController {
         dto.setCreatedAt(user.getCreatedAt());
         dto.setEventsCreated(user.getEventsCreatedCount());
         return dto;
+    }
+
+    @PostMapping("/sync")
+    public ResponseEntity<Void> syncUser(@RequestBody UserSyncRequestDTO syncRequest) {
+        userService.syncUser(syncRequest);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/internal/synchronize")
