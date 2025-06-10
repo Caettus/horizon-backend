@@ -13,6 +13,7 @@ public interface UserService {
     UserResponseDTO createUser(UserCreateDTO dto);
     UserResponseDTO updateUser(int id, UserUpdateDTO dto);
     void deleteUser(int id);
+    void deleteUserByKeycloakId(String keycloakId);
 
     User getUserByKeycloakId(String keycloakId);
     List<User> getUsersByKeycloakIds(List<String> keycloakIds);

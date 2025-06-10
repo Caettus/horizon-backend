@@ -4,6 +4,7 @@ import com.horizon.userservice.DAL.UserDAL;
 import com.horizon.userservice.DTO.UserCreateDTO;
 import com.horizon.userservice.DTO.UserResponseDTO;
 import com.horizon.userservice.DTO.UserUpdateDTO;
+import com.horizon.userservice.event.UserForgottenEvent;
 import com.horizon.userservice.event.UserRegisteredEvent;
 import com.horizon.userservice.event.UserProfileUpdatedEvent;
 import com.horizon.userservice.eventbus.EventCreatedListener;
@@ -80,6 +81,16 @@ public class UserServiceImpl implements UserService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
         }
         userDAL.deleteById(id);
+    }
+
+    @Override
+    public void deleteUserByKeycloakId(String keycloakId) {
+        Optional<User> userOptional = userDAL.findByKeycloakId(keycloakId);
+        if (userOptional.isPresent()) {
+            userDAL.delete(userOptional.get());
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + keycloakId);
+        }
     }
 
     @Override
