@@ -22,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource; // Import this
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +44,8 @@ import static org.mockito.Mockito.*;
 @ActiveProfiles("test")
 @Transactional
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+// Add this annotation to enable RabbitMQ listeners for this test
+@TestPropertySource(properties = {"spring.rabbitmq.listener.simple.auto-startup=true"})
 public class UserDeletionSagaIntegrationTest {
 
     // Note: I've updated the image name. Using "mysql:8" lets Docker choose the best
@@ -110,10 +113,8 @@ public class UserDeletionSagaIntegrationTest {
         when(keycloak.realm(anyString())).thenReturn(realmResource);
         when(realmResource.users()).thenReturn(usersResource);
 
-        // **FIXED**: The incorrect doNothing() line was removed.
-        // Mocks return null by default, which is fine since the return value is not used.
-        // This line makes the mock's behavior explicit.
-        when(usersResource.delete(anyString())).thenReturn(null);
+        // Mock the delete call to do nothing to avoid NullPointerException if the call returns void
+        doNothing().when(usersResource).delete(anyString());
     }
 
     @Test
@@ -141,14 +142,14 @@ public class UserDeletionSagaIntegrationTest {
         assertEquals(SagaStatus.AWAITING_CONFIRMATION, initialSagaState.get().getStatus());
 
         System.out.println("Test: Simulating confirmation from eventservice...");
-        // *** FIX START ***
+        // Send confirmations which will now be picked up by the active listeners
         rabbitTemplate.convertAndSend("user.deletion.exchange", "user.deletion.events.confirmed", keycloakId);
 
         System.out.println("Test: Simulating confirmation from rsvpservice...");
         rabbitTemplate.convertAndSend("user.deletion.exchange", "user.deletion.rsvps.confirmed", keycloakId);
-        // *** FIX END ***
 
         Awaitility.await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+            // Now this verification should pass
             verify(keycloak.realm("horizon-realm").users()).delete(keycloakId);
             assertFalse(userDAL.findByKeycloakId(keycloakId).isPresent(), "User should be deleted from the database.");
             Optional<UserDeletionSagaState> finalSagaState = sagaStateRepository.findBySagaId(keycloakId);
