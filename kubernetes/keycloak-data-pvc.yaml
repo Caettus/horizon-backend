@@ -8,4 +8,4 @@ spec:
   resources:
     requests:
       storage: 1Gi              # tweak size as needed
-  storageClassName: standard   # works out-of-the-box on Minikube
+  storageClassName: default

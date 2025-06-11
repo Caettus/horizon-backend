@@ -182,11 +182,11 @@ jobs:
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ${{ env.REGISTRY }} -u $GITHUB_ACTOR --password-stdin
 
-      - name: Build Docker image
+      - name: Build Docker image (linux/amd64)
         run: |
-          docker build \
-            -t ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/${{ matrix.service }}:latest \
-            ./${{ matrix.service }}
+          docker buildx create --use
+          docker buildx build --platform linux/amd64 --push -t ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/${{ matrix.service }}:latest ./${{ matrix.service }}
+
 
       # -------- Trivy Scan ----------
       - name: Run Trivy image scan
@@ -215,7 +215,8 @@ jobs:
 
       - name: Build Keycloak Custom Image
         run: |
-          docker build -t ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/keycloak:latest ./keycloak
+          docker buildx create --use
+          docker buildx build --platform linux/amd64 --push -t ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/keycloak:latest ./keycloak
 
       - name: Push Keycloak Image to GHCR
         run: |
