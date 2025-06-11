@@ -216,7 +216,7 @@ jobs:
       - name: Build Keycloak Custom Image
         run: |
           docker buildx create --use
-          docker buildx build --platform linux/amd64 --push -t ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/keycloak:latest ./keycloak
+          docker buildx build --platform linux/amd64 --load -t ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/keycloak:latest ./keycloak
 
       - name: Push Keycloak Image to GHCR
         run: |
