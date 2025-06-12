@@ -2,19 +2,12 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: horizon-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
+  ingressClassName: nginx
   rules:
-    - host: keycloak.horizon.local
-      http:
-        paths:
-          - path: /auth
-            pathType: Prefix
-            backend:
-              service:
-                name: keycloak-service
-                port:
-                  number: 8083 # Corrected
-    - host: api.horizon.local
+    - host: api.132.164.221.89.nip.io
       http:
         paths:
           - path: /
@@ -23,14 +16,14 @@ spec:
               service:
                 name: api-gateway-service
                 port:
-                  number: 8080 # Corrected
-    - host: app.horizon.local
+                  number: 8080
+    - host: keycloak.132.164.221.89.nip.io
       http:
         paths:
-          - path: /
+          - path: /auth
             pathType: Prefix
             backend:
               service:
-                name: frontend-service # Ensure this service exists
+                name: keycloak-service
                 port:
-                  number: 80
+                  number: 8083
