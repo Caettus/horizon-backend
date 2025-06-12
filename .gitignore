@@ -254,3 +254,13 @@ gradle-app.setting
 .idea/misc.xml
 .idea/material_theme_project_new.xml
 .idea/horizon-backend.iml
+
+# Custom additions
+build/
+.gradle/
+.DS_Store
+*.class
+*.jar
+*.war
+*.ear
+!gradle/wrapper/gradle-wrapper.jar

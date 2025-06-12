@@ -1,8 +1,8 @@
 package com.horizon.eventservice.controller;
 
-import com.horizon.eventservice.DTO.*;
+import com.horizon.eventservice.dto.*;
 import com.horizon.eventservice.model.Event;
-import com.horizon.eventservice.Interface.EventService;
+import com.horizon.eventservice.service.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

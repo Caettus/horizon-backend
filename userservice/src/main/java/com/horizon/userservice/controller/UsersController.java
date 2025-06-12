@@ -1,10 +1,10 @@
 package com.horizon.userservice.controller;
 
-import com.horizon.userservice.DTO.UserCreateDTO;
-import com.horizon.userservice.DTO.UserResponseDTO;
-import com.horizon.userservice.DTO.UserUpdateDTO;
-import com.horizon.userservice.DTO.UserSyncRequestDTO;
-import com.horizon.userservice.Interface.UserService;
+import com.horizon.userservice.dto.UserCreateDTO;
+import com.horizon.userservice.dto.UserResponseDTO;
+import com.horizon.userservice.dto.UserUpdateDTO;
+import com.horizon.userservice.dto.UserSyncRequestDTO;
+import com.horizon.userservice.service.UserService;
 import com.horizon.userservice.model.User;
 import com.horizon.userservice.saga.UserDeletionSaga;
 import jakarta.validation.Valid;
@@ -101,7 +101,7 @@ public class UsersController {
         dto.setAge(user.getAge());
         dto.setKeycloakId(user.getKeycloakId());
         dto.setCreatedAt(user.getCreatedAt());
-        dto.setEventsCreated(user.getEventsCreatedCount());
+        dto.setEventsCreated(user.getEventsCreated());
         return dto;
     }
 
