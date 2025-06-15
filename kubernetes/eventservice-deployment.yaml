@@ -20,6 +20,13 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-secret
+      initContainers:
+        - name: wait-for-mysql-eventservice
+          image: busybox:1.28
+          command: [ 'sh', '-c', 'until nslookup mysql-eventservice && nc -z mysql-eventservice 3306; do echo waiting for mysql-eventservice; sleep 2; done;' ]
+        - name: wait-for-keycloak
+          image: busybox:1.28
+          command: [ 'sh', '-c', 'until nslookup keycloak-service && nc -z keycloak-service 8083; do echo waiting for keycloak; sleep 2; done;' ]
       containers:
         - name: eventservice
           image: ghcr.io/caettus/horizon-backend/eventservice:latest

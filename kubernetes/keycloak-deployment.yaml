@@ -16,9 +16,20 @@ spec:
     spec:
       imagePullSecrets:
         - name: ghcr-secret
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox:1.28
+          command: [ 'sh', '-c', 'until nslookup mysql-keycloak && nc -z mysql-keycloak 3306; do echo waiting for mysql; sleep 2; done;' ]
       containers:
         - name: keycloak
           image: ghcr.io/caettus/horizon-backend/keycloak:latest
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m" # 50% of a core
+            limits:
+              memory: "1Gi"
+              cpu: "1" # 1 full core
           ports:
             - containerPort: 8080
           env:
