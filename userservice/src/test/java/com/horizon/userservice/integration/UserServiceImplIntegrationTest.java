@@ -20,6 +20,7 @@ import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.time.LocalDateTime;
@@ -37,8 +38,8 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.awaitility.Awaitility;
 import java.util.concurrent.TimeUnit;
-import com.horizon.userservice.event.UserRegisteredEvent;
-import com.horizon.userservice.event.UserProfileUpdatedEvent;
+import com.horizon.common.events.UserRegisteredEvent;
+import com.horizon.common.events.UserProfileUpdatedEvent;
 import java.util.Map;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;

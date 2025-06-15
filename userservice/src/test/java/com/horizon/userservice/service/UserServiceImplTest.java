@@ -24,6 +24,12 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.horizon.common.events.UserRegisteredEvent;
+import com.horizon.common.events.UserProfileUpdatedEvent;
+import com.horizon.userservice.dto.UserResponseDTO;
+import com.horizon.userservice.dto.UserUpdateDTO;
+import com.horizon.userservice.eventbus.EventCreatedListener;
+
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
 
@@ -296,8 +302,8 @@ class UserServiceImplTest {
 
         ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
         verify(rabbitTemplate).convertAndSend(eq("horizon.users.exchange"), eq("user.registered"), eventCaptor.capture());
-        assertTrue(eventCaptor.getValue() instanceof com.horizon.userservice.event.UserRegisteredEvent);
-        com.horizon.userservice.event.UserRegisteredEvent registeredEvent = (com.horizon.userservice.event.UserRegisteredEvent) eventCaptor.getValue();
+        assertTrue(eventCaptor.getValue() instanceof UserRegisteredEvent);
+        UserRegisteredEvent registeredEvent = (UserRegisteredEvent) eventCaptor.getValue();
         assertEquals(newKeycloakId, registeredEvent.getKeycloakId());
         assertEquals(newUsername, registeredEvent.getUsername());
         assertEquals(newEmail, registeredEvent.getEmail());
@@ -344,8 +350,8 @@ class UserServiceImplTest {
 
         ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
         verify(rabbitTemplate).convertAndSend(eq("horizon.users.exchange"), eq("user.profile.updated"), eventCaptor.capture());
-        assertTrue(eventCaptor.getValue() instanceof com.horizon.userservice.event.UserProfileUpdatedEvent);
-        com.horizon.userservice.event.UserProfileUpdatedEvent updatedEvent = (com.horizon.userservice.event.UserProfileUpdatedEvent) eventCaptor.getValue();
+        assertTrue(eventCaptor.getValue() instanceof UserProfileUpdatedEvent);
+        UserProfileUpdatedEvent updatedEvent = (UserProfileUpdatedEvent) eventCaptor.getValue();
         assertEquals(existingKeycloakId, updatedEvent.getKeycloakId());
         assertNotNull(updatedEvent.getUpdatedFields().get("username"));
         assertNotNull(updatedEvent.getUpdatedFields().get("email"));
@@ -545,8 +551,8 @@ class UserServiceImplTest {
 
         ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
         verify(rabbitTemplate).convertAndSend(eq("horizon.users.exchange"), eq("user.profile.updated"), eventCaptor.capture());
-        assertTrue(eventCaptor.getValue() instanceof com.horizon.userservice.event.UserProfileUpdatedEvent);
-        com.horizon.userservice.event.UserProfileUpdatedEvent updatedEvent = (com.horizon.userservice.event.UserProfileUpdatedEvent) eventCaptor.getValue();
+        assertTrue(eventCaptor.getValue() instanceof UserProfileUpdatedEvent);
+        UserProfileUpdatedEvent updatedEvent = (UserProfileUpdatedEvent) eventCaptor.getValue();
         assertEquals(keycloakId, updatedEvent.getKeycloakId());
         assertTrue(updatedEvent.getUpdatedFields().containsKey("email"));
         assertTrue(updatedEvent.getUpdatedFields().containsKey("age"));
@@ -589,7 +595,8 @@ class UserServiceImplTest {
         verify(userDAL).save(any(User.class));
         ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
         verify(rabbitTemplate).convertAndSend(eq("horizon.users.exchange"), eq("user.profile.updated"), eventCaptor.capture());
-        com.horizon.userservice.event.UserProfileUpdatedEvent updatedEvent = (com.horizon.userservice.event.UserProfileUpdatedEvent) eventCaptor.getValue();
+        assertTrue(eventCaptor.getValue() instanceof UserProfileUpdatedEvent);
+        UserProfileUpdatedEvent updatedEvent = (UserProfileUpdatedEvent) eventCaptor.getValue();
         assertEquals(keycloakId, updatedEvent.getKeycloakId());
         assertTrue(updatedEvent.getUpdatedFields().containsKey("email"));
         assertFalse(updatedEvent.getUpdatedFields().containsKey("age"));

@@ -47,9 +47,12 @@ spec:
                   name: mysql-eventservice-secret
                   key: mysql-eventservice-password
             - name: SPRING_SECURITY_USER_NAME
-              value: "root"
+              value: "user"
             - name: SPRING_SECURITY_USER_PASSWORD
-              value: "superSecret"
+              valueFrom:
+                secretKeyRef:
+                  name: eventservice-security-user-secret
+                  key: password
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
               value: "DEBUG"
             - name: SPRING_RABBITMQ_HOST

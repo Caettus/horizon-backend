@@ -2,14 +2,33 @@ version: '3.8'
 
 services:
   keycloak:
-    image: horizon-keycloak:latest
+    image: quay.io/keycloak/keycloak:25.0.2
+    container_name: keycloak
     ports:
       - "8083:8080"
     environment:
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-    volumes:
-      - keycloak_data:/opt/keycloak/data
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: mysql
+      KC_DB_URL_HOST: mysql-keycloak
+      KC_DB_URL_DATABASE: keycloak_db
+      KC_DB_USERNAME: root
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+    command:
+      - "start-dev"
+    depends_on:
+      - mysql-keycloak
+    networks:
+      - horizon-net
+
+  mysql-keycloak:
+    image: mysql:8.0
+    container_name: mysql-keycloak
+    environment:
+      MYSQL_ROOT_PASSWORD: ${KC_DB_PASSWORD}
+      MYSQL_DATABASE: keycloak_db
+    ports:
+      - "3307:3306"
     networks:
       - horizon-net
 
@@ -18,4 +37,4 @@ volumes:
 
 networks:
   horizon-net:
-    external: true
+    driver: bridge

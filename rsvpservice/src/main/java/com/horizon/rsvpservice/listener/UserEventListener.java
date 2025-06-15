@@ -1,7 +1,7 @@
 package com.horizon.rsvpservice.listener;
 
-import com.horizon.rsvpservice.event.UserRegisteredEvent;
-import com.horizon.rsvpservice.event.UserProfileUpdatedEvent;
+import com.horizon.common.events.UserRegisteredEvent;
+import com.horizon.common.events.UserProfileUpdatedEvent;
 import com.horizon.rsvpservice.model.Rsvp;
 import com.horizon.rsvpservice.repository.RsvpRepository;
 import org.slf4j.Logger;

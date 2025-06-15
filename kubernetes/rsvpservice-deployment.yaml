@@ -36,9 +36,12 @@ spec:
                   name: mysql-rsvpservice-secret
                   key: mysql-rsvpservice-password
             - name: SPRING_SECURITY_USER_NAME
-              value: "root"
+              value: "user"
             - name: SPRING_SECURITY_USER_PASSWORD
-              value: "superSecret"
+              valueFrom:
+                secretKeyRef:
+                  name: rsvpservice-security-user-secret
+                  key: password
             - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY
               value: "DEBUG"
             - name: SPRING_RABBITMQ_HOST

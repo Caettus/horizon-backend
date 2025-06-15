@@ -1,6 +1,36 @@
 # Horizon Backend
 
-This repository contains the backend microservices for the Horizon application.
+This repository contains the backend microservices for the Horizon application. It follows a microservices architecture, with each service having its own database and communicating with other services through a message broker (RabbitMQ).
+
+## Architecture Overview
+
+The backend consists of the following services:
+
+- **UserService**: Manages user data, including registration, profile updates, and deletion.
+- **EventService**: Manages event data, including creation, updates, and deletion.
+- **RsvpService**: Manages RSVPs for events.
+- **ApiGateway**: Provides a single entry point for all client requests.
+- **NotificationService**: (Placeholder) Will be responsible for sending notifications to users.
+
+The services communicate with each other asynchronously using a message bus implemented with RabbitMQ. The `common-events` module contains the event definitions that are shared between the services.
+
+## Getting Started
+
+To run the services locally, you can use the provided Docker Compose files. Each service has its own `docker-compose.yml` file that starts the service and its dependencies (e.g., a database).
+
+To start a service, navigate to the service's directory and run:
+
+```bash
+docker-compose up
+```
+
+### Building the Services
+
+Before running the services, you need to build the Docker images for each of them. You can do this by running the following command from the root of the project:
+
+```bash
+./gradlew bootBuildImage
+```
 
 ## Integration Testing
 

@@ -155,7 +155,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserByKeycloakId(String keycloakId) {
-        // TODO: Implement actual logic
         return userRepository.findByKeycloakId(keycloakId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + keycloakId));
     }
@@ -189,14 +188,6 @@ public class UserServiceImpl implements UserService {
             user.setAge(userDetails.getAge());
             updatedFields.put("age", Map.of("oldValue", String.valueOf(oldAge), "newValue", user.getAge()));
         }
-
-        // TODO: Add other updatable fields from UserUpdateDTO in a similar manner
-        // Example for a hypothetical 'displayName' field:
-        // if (userDetails.getDisplayName() != null && !userDetails.getDisplayName().equals(user.getDisplayName())) {
-        //    String oldDisplayName = user.getDisplayName();
-        //    user.setDisplayName(userDetails.getDisplayName());
-        //    updatedFields.put("displayName", Map.of("oldValue", oldDisplayName, "newValue", user.getDisplayName()));
-        // }
 
         if (!updatedFields.isEmpty()) {
             User updatedUser = userRepository.save(user);

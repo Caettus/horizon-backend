@@ -1,0 +1,17 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'com.horizon'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.amqp:spring-amqp'
+    // Add any common dependencies here. For example, Lombok:
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+} 

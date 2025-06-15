@@ -54,6 +54,11 @@ spec:
                   name: eventbus-secret
                   key: rabbitmq-password
             - name: SPRING_SECURITY_USER_NAME
-              value: "root"
+              value: "user"
             - name: SPRING_SECURITY_USER_PASSWORD
-              value: "superSecret" 
+              valueFrom:
+                secretKeyRef:
+                  name: userservice-security-user-secret
+                  key: password
+      volumes:
+      - name: userservice-config-volume

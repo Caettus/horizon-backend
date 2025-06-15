@@ -1,7 +1,7 @@
 package com.horizon.rsvpservice.saga;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.horizon.rsvpservice.event.UserForgottenEvent;
+import com.horizon.common.events.UserForgottenEvent;
 import com.horizon.rsvpservice.service.RsvpService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;

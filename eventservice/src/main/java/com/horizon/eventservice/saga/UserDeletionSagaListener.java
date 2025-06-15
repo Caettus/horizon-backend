@@ -1,8 +1,9 @@
 package com.horizon.eventservice.saga;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.horizon.eventservice.Interface.EventService;
-import com.horizon.eventservice.event.UserForgottenEvent;
+import com.horizon.common.events.UserForgottenEvent;
+import com.horizon.eventservice.service.EventService;
+import org.slf4j.Logger;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
