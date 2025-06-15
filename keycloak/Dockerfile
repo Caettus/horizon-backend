@@ -1,4 +1,4 @@
-FROM quay.io/keycloak/keycloak:26.2
+FROM --platform=$TARGETPLATFORM quay.io/keycloak/keycloak:26.2
 
 COPY custom-mappers/keycloak-custom-realm-issuer-url.jar /opt/keycloak/providers/
 
