@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-keycloak-deployment
+  labels:
+    app: mysql-keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-keycloak
+  template:
+    metadata:
+      labels:
+        app: mysql-keycloak
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-keycloak-secret
+                  key: mysql-keycloak-password
+            - name: MYSQL_DATABASE
+              value: keycloak_db

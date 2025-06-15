@@ -22,6 +22,26 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            # Database Configuration
+            - name: KC_DB
+              value: "mysql"
+            - name: KC_DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: mysql-keycloak-config
+                  key: mysql-url
+            - name: KC_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-keycloak-secret
+                  key: mysql-keycloak-username
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-keycloak-secret
+                  key: mysql-keycloak-password
+
+            # Admin User
             - name: KEYCLOAK_ADMIN
               valueFrom:
                 secretKeyRef:
@@ -33,12 +53,9 @@ spec:
                   name: keycloak-admin-secret
                   key: KEYCLOAK_ADMIN_PASSWORD
 
-            # Vertel Keycloak welke hostname provider te gebruiken
+            # Hostname Configuration
             - name: KC_HOSTNAME_PROVIDER
               value: "fixed"
-
-            # De URL die als ISSUER in de tokens moet komen.
-            # Dit is de publieke URL die je API Gateway verwacht.
             - name: KC_HOSTNAME
               value: "http://keycloak.132.164.221.89.nip.io"
             - name: KC_HOSTNAME_FRONTEND_URL
@@ -55,9 +72,6 @@ spec:
               value: "false"
             - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC
               value: "true"
-
-
-
           volumeMounts:
             - name: keycloak-data
               mountPath: /opt/keycloak/data

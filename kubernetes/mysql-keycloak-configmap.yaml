@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-keycloak-config
+data:
+  mysql-url: "jdbc:mysql://mysql-keycloak:3306/keycloak_db"
