@@ -28,4 +28,4 @@ spec:
                   name: mysql-eventservice-secret
                   key: mysql-eventservice-password
             - name: MYSQL_DATABASE
-              value: eventservice
+              value: eventservice_db
