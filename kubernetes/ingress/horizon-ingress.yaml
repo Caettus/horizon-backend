@@ -20,7 +20,7 @@ spec:
     - host: keycloak.20.82.232.197.sslip.io
       http:
         paths:
-          - path: /auth
+          - path: /
             pathType: Prefix
             backend:
               service:

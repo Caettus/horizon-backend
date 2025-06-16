@@ -68,9 +68,9 @@ spec:
             - name: KC_HOSTNAME_PROVIDER
               value: "fixed"
             - name: KC_HOSTNAME
-              value: "http://keycloak.132.164.221.89.nip.io"
+              value: "http://keycloak.20.82.232.197.sslip.io"
             - name: KC_HOSTNAME_FRONTEND_URL
-              value: "http://keycloak.132.164.221.89.nip.io"
+              value: "http://keycloak.20.82.232.197.sslip.io"
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_STRICT_HTTPS
