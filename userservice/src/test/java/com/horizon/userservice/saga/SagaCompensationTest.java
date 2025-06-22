@@ -36,7 +36,7 @@ class SagaCompensationTest {
     private static final Network network = Network.newNetwork();
 
     @Container
-    public static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:3-management-delayed")
+    public static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:3-management")
             .withNetwork(network)
             .withNetworkAliases("rabbitmq")
             .withPluginsEnabled("rabbitmq_delayed_message_exchange");
