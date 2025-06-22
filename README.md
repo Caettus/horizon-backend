@@ -25,7 +25,7 @@ This will create the necessary Docker images in your local Docker registry.
 Once the images have been built, you can run the integration test using the following command:
 
 ```bash
-./gradlew :userservice:test --tests "com.horizon.userservice.integration.SagaSynchronizationTest"
+./gradlew :userservice:test --tests "com.horizon.userservice.saga.SagaSynchronizationTest"
 ```
 
 ### Important Notes

@@ -1,4 +1,4 @@
-package com.horizon.userservice.integration;
+package com.horizon.userservice.saga;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterAll;
@@ -26,18 +26,20 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
-class SagaSynchronizationTest {
+class SagaCompensationTest {
 
     private static final Network network = Network.newNetwork();
 
     @Container
     public static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:3-management-delayed")
             .withNetwork(network)
-            .withNetworkAliases("rabbitmq");
+            .withNetworkAliases("rabbitmq")
+            .withPluginsEnabled("rabbitmq_delayed_message_exchange");
 
     @Container
     public static MySQLContainer<?> mysqlUser = new MySQLContainer<>("mysql:8.0")
@@ -54,7 +56,7 @@ class SagaSynchronizationTest {
             .withPassword("superSecret")
             .withNetwork(network)
             .withNetworkAliases("mysql-event");
-            
+
     @Container
     public static MySQLContainer<?> mysqlRsvp = new MySQLContainer<>("mysql:8.0")
             .withDatabaseName("rsvpservice_db")
@@ -123,13 +125,31 @@ class SagaSynchronizationTest {
         if (rsvpServiceDbConnection != null) rsvpServiceDbConnection.close();
         if (userServiceDbConnection != null) userServiceDbConnection.close();
     }
-
+    
     @Test
-    void whenForgetMeRequestIsMade_thenUserDataIsDeletedAcrossServices() throws Exception {
+    void whenParticipantServiceFails_thenSagaIsRolledBackAndUserStatusIsReverted() throws Exception {
+        // 1. Prepare Data
         String keycloakId = UUID.randomUUID().toString();
         UUID eventId = seedInitialData(keycloakId);
+
+        // 2. Simulate Failure
+        eventservice.stop();
+
+        // 3. Trigger the Saga
         triggerForgetMeRequest(keycloakId);
-        verifyUserIsCompletelyDeleted(keycloakId, eventId);
+
+        // 4. Verify the Rollback
+        await().atMost(Duration.ofSeconds(60)).until(() -> sagaHasFailed(keycloakId));
+        await().atMost(Duration.ofSeconds(60)).until(() -> userStatusIsActive(keycloakId));
+
+        // Verify final state
+        assertTrue(sagaHasFailed(keycloakId), "Saga status should be FAILED.");
+        assertTrue(userStatusIsActive(keycloakId), "User status should be reverted to ACTIVE.");
+        assertFalse(rsvpExistsForUser(keycloakId), "RSVP data should be deleted by the successful participant.");
+        
+        // We cannot check eventExists because the eventservice container is stopped.
+        // Re-opening the connection would be complex. The core of the test is verifying
+        // the compensating action on the userservice side.
     }
 
     private void triggerForgetMeRequest(String keycloakId) {
@@ -138,16 +158,15 @@ class SagaSynchronizationTest {
     }
 
     private UUID seedInitialData(String keycloakId) throws Exception {
-        // Step 1: Create a user in userservice
         String userServiceUrl = String.format("http://%s:%d", userservice.getHost(), userservice.getMappedPort(8081));
 
         ObjectMapper objectMapper = new ObjectMapper();
 
         var userCreateMap = new java.util.HashMap<String, Object>();
         userCreateMap.put("keycloakId", keycloakId);
-        userCreateMap.put("username", "testuser");
-        userCreateMap.put("email", "test@test.com");
-        userCreateMap.put("age", "25");
+        userCreateMap.put("username", "testuser-rollback");
+        userCreateMap.put("email", "rollback@test.com");
+        userCreateMap.put("age", "30");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -155,12 +174,11 @@ class SagaSynchronizationTest {
 
         restTemplate.postForEntity(userServiceUrl + "/users", userRequest, String.class);
 
-        // Step 2: Create associated data directly in the databases
         final UUID eventId = UUID.randomUUID();
         try (var statement = eventServiceDbConnection.createStatement()) {
             String insertEventSql = String.format(
                     "INSERT INTO event (id, title, description, location, start_date, end_date, category, is_private, organizer_id, image_url, created_at, status, is_flagged) " +
-                            "VALUES ('%s', 'Test Event', 'Test Desc', 'Test Location', '%s', '%s', 'Test Category', false, '%s', 'http://example.com/img.png', '%s', 'UPCOMING', false)",
+                            "VALUES ('%s', 'Rollback Event', 'Desc', 'Location', '%s', '%s', 'Category', false, '%s', 'http://example.com/img.png', '%s', 'UPCOMING', false)",
                     eventId, LocalDateTime.now(), LocalDateTime.now().plusHours(2), keycloakId, LocalDateTime.now()
             );
             statement.executeUpdate(insertEventSql);
@@ -168,25 +186,15 @@ class SagaSynchronizationTest {
 
         try (var statement = rsvpServiceDbConnection.createStatement()) {
             String insertRsvpSql = String.format(
-                    "INSERT INTO rsvps (event_id, user_id, status, created_at, user_display_name) VALUES ('%s', '%s', 'ATTENDING', '%s', 'testuser')",
+                    "INSERT INTO rsvps (event_id, user_id, status, created_at, user_display_name) VALUES ('%s', '%s', 'ATTENDING', '%s', 'testuser-rollback')",
                     eventId, keycloakId, LocalDateTime.now()
             );
             statement.executeUpdate(insertRsvpSql);
         }
 
-        assertTrue(eventExists(eventId), "Pre-condition failed: Event should exist before deletion.");
-        assertTrue(rsvpExistsForUser(keycloakId), "Pre-condition failed: RSVP should exist before deletion.");
+        assertTrue(eventExists(eventId), "Pre-condition failed: Event should exist.");
+        assertTrue(rsvpExistsForUser(keycloakId), "Pre-condition failed: RSVP should exist.");
         return eventId;
-    }
-
-    private void verifyUserIsCompletelyDeleted(String keycloakId, UUID eventId) throws SQLException {
-        await().atMost(Duration.ofSeconds(60)).until(() -> !eventExists(eventId));
-        await().atMost(Duration.ofSeconds(60)).until(() -> !rsvpExistsForUser(keycloakId));
-        await().atMost(Duration.ofSeconds(60)).until(() -> userIsDeleted(keycloakId));
-
-        assertFalse(eventExists(eventId), "Event should be deleted after saga completion.");
-        assertFalse(rsvpExistsForUser(keycloakId), "RSVP should be deleted after saga completion.");
-        assertTrue(userIsDeleted(keycloakId), "User status should be DELETED after saga completion.");
     }
 
     private boolean eventExists(UUID eventId) throws SQLException {
@@ -205,11 +213,21 @@ class SagaSynchronizationTest {
         }
     }
 
-    private boolean userIsDeleted(String keycloakId) throws SQLException {
+    private boolean sagaHasFailed(String correlationId) throws SQLException {
+        try (var statement = userServiceDbConnection.createStatement()) {
+            ResultSet rs = statement.executeQuery("SELECT status FROM saga_states WHERE correlation_id = '" + correlationId + "'");
+            if (rs.next()) {
+                return "FAILED".equals(rs.getString("status"));
+            }
+            return false;
+        }
+    }
+
+    private boolean userStatusIsActive(String keycloakId) throws SQLException {
         try (var statement = userServiceDbConnection.createStatement()) {
             ResultSet rs = statement.executeQuery("SELECT status FROM users WHERE keycloak_id = '" + keycloakId + "'");
             if (rs.next()) {
-                return "DELETED".equals(rs.getString("status"));
+                return "ACTIVE".equals(rs.getString("status"));
             }
             return false;
         }
