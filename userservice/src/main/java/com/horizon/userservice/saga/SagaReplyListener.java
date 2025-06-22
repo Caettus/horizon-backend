@@ -1,6 +1,5 @@
 package com.horizon.userservice.saga;
 
-import com.horizon.userservice.Interface.UserService;
 import com.horizon.userservice.event.SagaReplyMessage;
 import com.horizon.userservice.model.SagaState;
 import com.horizon.userservice.model.SagaStatus;
@@ -14,15 +13,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class SagaReplyListener {
 
     private final SagaStateRepository sagaStateRepository;
-    private final UserService userService;
+    private final SagaCompletionService sagaCompletionService;
 
     private static final String EVENT_SERVICE = "eventservice";
     private static final String RSVP_SERVICE = "rsvpservice";
 
     @Autowired
-    public SagaReplyListener(SagaStateRepository sagaStateRepository, UserService userService) {
+    public SagaReplyListener(SagaStateRepository sagaStateRepository, SagaCompletionService sagaCompletionService) {
         this.sagaStateRepository = sagaStateRepository;
-        this.userService = userService;
+        this.sagaCompletionService = sagaCompletionService;
     }
 
     @RabbitListener(queues = "saga.replies.queue")
@@ -52,11 +51,8 @@ public class SagaReplyListener {
     }
 
     private void handleFailure(SagaState sagaState, String sourceService, String reason) {
-        sagaState.setStatus(SagaStatus.FAILED);
-        sagaState.setErrorMessage("Failure from " + sourceService + ": " + reason);
-        sagaStateRepository.save(sagaState);
-        userService.revertUserDeletion(sagaState.getCorrelationId());
-        System.out.println("Saga " + sagaState.getSagaId() + " failed. User deletion reverted.");
+        String failureReason = "Failure from " + sourceService + ": " + reason;
+        sagaCompletionService.failSaga(sagaState, failureReason);
     }
 
     private void handleSuccess(SagaState sagaState, String sourceService) {
@@ -69,16 +65,6 @@ public class SagaReplyListener {
         sagaStateRepository.save(sagaState);
         System.out.println("Saga " + sagaState.getSagaId() + " processed success from " + sourceService);
 
-        checkForSagaCompletion(sagaState);
-    }
-
-    private void checkForSagaCompletion(SagaState sagaState) {
-        if (sagaState.isEventsCleaned() && sagaState.isRsvpsCleaned()) {
-            System.out.println("All steps completed for saga " + sagaState.getSagaId() + ". Committing final action.");
-            userService.completeUserDeletion(sagaState.getCorrelationId());
-            sagaState.setStatus(SagaStatus.COMPLETED);
-            sagaStateRepository.save(sagaState);
-            System.out.println("Saga " + sagaState.getSagaId() + " completed successfully.");
-        }
+        sagaCompletionService.checkForSagaCompletion(sagaState);
     }
 } 

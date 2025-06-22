@@ -1,6 +1,8 @@
 package com.horizon.userservice.saga;
 
 import com.horizon.userservice.Interface.UserService;
+import com.horizon.userservice.configuration.UserExchangeRabbitMQConfig;
+import com.horizon.userservice.event.SagaTimeoutMessage;
 import com.horizon.userservice.event.UserForgottenEvent;
 import com.horizon.userservice.model.SagaState;
 import com.horizon.userservice.model.SagaStatus;
@@ -44,5 +46,12 @@ public class UserDeletionSagaOrchestrator implements UserDeletionSaga {
         UserForgottenEvent event = new UserForgottenEvent(savedSagaState.getSagaId(), keycloakId);
         rabbitTemplate.convertAndSend("horizon.users.exchange", "user.forgotten", event);
         System.out.println("Published UserForgottenEvent for keycloakId: " + keycloakId + " with sagaId: " + savedSagaState.getSagaId());
+
+        // 5. Dispatch saga timeout message
+        SagaTimeoutMessage timeoutMessage = new SagaTimeoutMessage(savedSagaState.getSagaId(), keycloakId);
+        rabbitTemplate.convertAndSend(UserExchangeRabbitMQConfig.SAGA_TIMEOUT_EXCHANGE, UserExchangeRabbitMQConfig.SAGA_TIMEOUT_ROUTING_KEY, timeoutMessage, message -> {
+            message.getMessageProperties().setHeader("x-delay", 30000);
+            return message;
+        });
     }
 } 

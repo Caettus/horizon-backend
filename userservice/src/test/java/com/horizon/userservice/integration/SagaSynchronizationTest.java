@@ -35,7 +35,7 @@ class SagaSynchronizationTest {
     private static final Network network = Network.newNetwork();
 
     @Container
-    public static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:3.12-management")
+    public static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:3-management-delayed")
             .withNetwork(network)
             .withNetworkAliases("rabbitmq");
 
