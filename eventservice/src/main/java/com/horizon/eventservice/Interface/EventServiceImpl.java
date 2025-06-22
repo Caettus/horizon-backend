@@ -36,6 +36,15 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public List<EventResponseDTO> getEventsByIds(List<UUID> ids) {
+        return eventDAL.findAllById(ids).stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+
+
+    @Override
     public List<EventResponseDTO> getAllEvents() {
         return eventDAL.findAll().stream()
                 .map(this::mapToDTO)

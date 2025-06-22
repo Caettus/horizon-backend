@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface EventService {
+    List<EventResponseDTO> getEventsByIds(List<UUID> ids);
     Optional<EventResponseDTO> getEventById(UUID id);
     List<EventResponseDTO> getAllEvents();
     Event createEvent(EventCreateDTO createDTO);

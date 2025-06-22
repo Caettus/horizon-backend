@@ -18,6 +18,15 @@ public class EventsController {
     @Autowired
     private EventService eventService;
 
+    @GetMapping("/batch")
+    public ResponseEntity<List<EventResponseDTO>> getEventsByIds(@RequestParam("ids") List<UUID> ids) {
+        List<EventResponseDTO> events = eventService.getEventsByIds(ids);
+        if (events.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(events);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<EventResponseDTO> getEvent(@PathVariable UUID id) {
         return eventService.getEventById(id)
