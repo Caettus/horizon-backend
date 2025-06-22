@@ -17,6 +17,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.MountableFile;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -45,12 +46,14 @@ class SagaCompensationTest {
     public static RabbitMQContainer rabbitmq = new RabbitMQContainer(RABBIT_IMAGE)
             .withNetwork(network)
             .withNetworkAliases("rabbitmq")
-            .withEnv("RABBITMQ_VM_MEMORY_HIGH_WATERMARK", "0.8")
-            .withEnv("RABBITMQ_VM_MEMORY_HIGH_WATERMARK_PAGING", "0.9")
-            .waitingFor(
-                    Wait.forListeningPort()
-                            .withStartupTimeout(Duration.ofMinutes(5))
-            );
+            .withCopyFileToContainer(
+                    MountableFile.forClasspathResource("rabbitmq.conf"),
+                    "/etc/rabbitmq/rabbitmq.conf"
+            )
+            .withExposedPorts(5672, 15672)          // +25672 if you use clustering
+            // wait for one of those ports to be up
+            .waitingFor(Wait.forListeningPort()
+                    .withStartupTimeout(Duration.ofMinutes(5)));
 
     // --- MODIFICATION: Use a single MySQL Container for all services ---
     @Container
