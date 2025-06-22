@@ -18,8 +18,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/public/**").permitAll()
-                        .requestMatchers("/actuator/prometheus").permitAll()
+                        .requestMatchers("/public/**", "/actuator/**").permitAll()
                         .requestMatchers("/users/internal/synchronize").permitAll()
                         .anyRequest().authenticated()
                 )
