@@ -175,8 +175,8 @@ class SagaCompensationTest {
         final UUID eventId = UUID.randomUUID();
         try (var statement = eventServiceDbConnection.createStatement()) {
             String insertEventSql = String.format(
-                    "INSERT INTO event (id, title, description, location, start_date, end_date, category, is_private, organizer_id, image_url, created_at, status) " +
-                            "VALUES ('%s', 'Rollback Event', 'Desc', 'Location', '%s', '%s', 'Category', false, '%s', 'http://example.com/img.png', '%s', 'UPCOMING')",
+                    "INSERT INTO event (id, title, description, location, start_date, end_date, category, is_private, organizer_id, image_url, created_at, status, is_flagged) " +
+                            "VALUES ('%s', 'Rollback Event', 'Desc', 'Location', '%s', '%s', 'Category', false, '%s', 'http://example.com/img.png', '%s', 'UPCOMING', false)",
                     eventId, LocalDateTime.now(), LocalDateTime.now().plusHours(2), keycloakId, LocalDateTime.now()
             );
             statement.executeUpdate(insertEventSql);
