@@ -9,7 +9,9 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserForgottenEvent {
+public class SagaReplyMessage {
     private UUID sagaId;
-    private String keycloakId;
+    private boolean success;
+    private String sourceService;
+    private String failureReason;
 } 

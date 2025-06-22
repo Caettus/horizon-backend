@@ -9,6 +9,7 @@ import com.horizon.userservice.event.UserRegisteredEvent;
 import com.horizon.userservice.event.UserProfileUpdatedEvent;
 import com.horizon.userservice.eventbus.EventCreatedListener;
 import com.horizon.userservice.model.User;
+import com.horizon.userservice.model.UserStatus;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -84,13 +85,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUserByKeycloakId(String keycloakId) {
-        Optional<User> userOptional = userDAL.findByKeycloakId(keycloakId);
-        if (userOptional.isPresent()) {
-            userDAL.delete(userOptional.get());
-        } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + keycloakId);
-        }
+    public void markUserForDeletion(String keycloakId) {
+        User user = userDAL.findByKeycloakId(keycloakId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + keycloakId));
+        user.setStatus(UserStatus.PENDING_DELETION);
+        userDAL.save(user);
+    }
+
+    @Override
+    public void completeUserDeletion(String keycloakId) {
+        User user = userDAL.findByKeycloakId(keycloakId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + keycloakId));
+        userDAL.delete(user);
+    }
+
+    @Override
+    public void revertUserDeletion(String keycloakId) {
+        User user = userDAL.findByKeycloakId(keycloakId).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + keycloakId));
+        user.setStatus(UserStatus.ACTIVE);
+        userDAL.save(user);
     }
 
     @Override

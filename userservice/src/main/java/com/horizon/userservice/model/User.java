@@ -19,6 +19,10 @@ public class User {
     @Column(name = "id")
     private int id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private UserStatus status = UserStatus.ACTIVE;
+
     @Column(name = "username", nullable = false)
     private String username;
 
@@ -40,6 +44,7 @@ public class User {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        status = UserStatus.ACTIVE;
     }
 
     public int getId() {
