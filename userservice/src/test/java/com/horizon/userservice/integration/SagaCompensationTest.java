@@ -128,7 +128,7 @@ class SagaCompensationTest {
     @Test
     void whenParticipantServiceFails_thenSagaIsRolledBackAndUserStatusIsReverted() throws Exception {
         // 1. Prepare Data
-        String keycloakId = "test-user-for-rollback";
+        String keycloakId = UUID.randomUUID().toString();
         UUID eventId = seedInitialData(keycloakId);
 
         // 2. Simulate Failure

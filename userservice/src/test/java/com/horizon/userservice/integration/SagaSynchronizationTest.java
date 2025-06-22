@@ -126,7 +126,7 @@ class SagaSynchronizationTest {
 
     @Test
     void whenForgetMeRequestIsMade_thenUserDataIsDeletedAcrossServices() throws Exception {
-        String keycloakId = "user-to-be-forgotten";
+        String keycloakId = UUID.randomUUID().toString();
         UUID eventId = seedInitialData(keycloakId);
         triggerForgetMeRequest(keycloakId);
         verifyUserIsCompletelyDeleted(keycloakId, eventId);
