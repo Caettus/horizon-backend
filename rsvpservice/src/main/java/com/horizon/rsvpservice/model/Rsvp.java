@@ -18,7 +18,7 @@ public class Rsvp {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "event_id", nullable = false)
+    @Column(name = "event_id", nullable = false, columnDefinition = "VARCHAR(36)")
     private UUID eventId;
 
     @Column(name = "user_id", nullable = false, columnDefinition = "VARCHAR(255)")
@@ -46,4 +46,4 @@ public class Rsvp {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-} 
+}
