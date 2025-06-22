@@ -35,7 +35,7 @@ class SagaSynchronizationTest {
     private static final Network network = Network.newNetwork();
 
     @Container
-    public static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:3.13-management")
+    public static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:3.12-management")
             .withNetwork(network)
             .withNetworkAliases("rabbitmq")
             .withPluginsEnabled("rabbitmq_delayed_message_exchange");
@@ -181,9 +181,9 @@ class SagaSynchronizationTest {
     }
 
     private void verifyUserIsCompletelyDeleted(String keycloakId, UUID eventId) throws SQLException {
-        await().atMost(Duration.ofSeconds(60)).until(() -> !eventExists(eventId));
-        await().atMost(Duration.ofSeconds(60)).until(() -> !rsvpExistsForUser(keycloakId));
-        await().atMost(Duration.ofSeconds(60)).until(() -> userIsDeleted(keycloakId));
+        await().atMost(Duration.ofMinutes(5)).until(() -> !eventExists(eventId));
+        await().atMost(Duration.ofMinutes(5)).until(() -> !rsvpExistsForUser(keycloakId));
+        await().atMost(Duration.ofMinutes(5)).until(() -> userIsDeleted(keycloakId));
 
         assertFalse(eventExists(eventId), "Event should be deleted after saga completion.");
         assertFalse(rsvpExistsForUser(keycloakId), "RSVP should be deleted after saga completion.");

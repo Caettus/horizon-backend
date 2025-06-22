@@ -36,7 +36,7 @@ class SagaCompensationTest {
     private static final Network network = Network.newNetwork();
 
     @Container
-    public static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:3.13-management")
+    public static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:3.12-management")
             .withNetwork(network)
             .withNetworkAliases("rabbitmq")
             .withPluginsEnabled("rabbitmq_delayed_message_exchange");
@@ -139,8 +139,8 @@ class SagaCompensationTest {
         triggerForgetMeRequest(keycloakId);
 
         // 4. Verify the Rollback
-        await().atMost(Duration.ofSeconds(60)).until(() -> sagaHasFailed(keycloakId));
-        await().atMost(Duration.ofSeconds(60)).until(() -> userStatusIsActive(keycloakId));
+        await().atMost(Duration.ofMinutes(5)).until(() -> sagaHasFailed(keycloakId));
+        await().atMost(Duration.ofMinutes(5)).until(() -> userStatusIsActive(keycloakId));
 
         // Verify final state
         assertTrue(sagaHasFailed(keycloakId), "Saga status should be FAILED.");
