@@ -199,9 +199,9 @@ jobs:
         run: |
           docker push ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/${{ matrix.service }}:latest
 
-  # ─────────────────────────────────────────────────────────────
-  # 5. DOCKER BUILD & PUSH – KEYCLOAK WITH CUSTOM JAR
-  # ─────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────
+    # 5. DOCKER BUILD & PUSH – KEYCLOAK WITH CUSTOM JAR
+    # ─────────────────────────────────────────────────────────────
   docker-keycloak:
     name: Docker Build & Push – Keycloak Custom
     runs-on: ubuntu-latest
@@ -213,11 +213,8 @@ jobs:
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ${{ env.REGISTRY }} -u $GITHUB_ACTOR --password-stdin
 
+      # This single step now builds AND pushes the image
       - name: Build and Push Keycloak Custom Image
         run: |
           docker buildx create --use
           docker buildx build --platform linux/amd64,linux/arm64 -t ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/keycloak:latest --push ./keycloak
-
-      - name: Push Keycloak Image to GHCR
-        run: |
-          docker push ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/keycloak:latest
