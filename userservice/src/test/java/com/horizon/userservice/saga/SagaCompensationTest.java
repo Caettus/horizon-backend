@@ -36,88 +36,74 @@ class SagaCompensationTest {
 
     private static final Network network = Network.newNetwork();
 
-    // 0️⃣  keep this – we already told Testcontainers it’s a RabbitMQ image
     private static final DockerImageName RABBIT_IMAGE =
             DockerImageName
                     .parse("heidiks/rabbitmq-delayed-message-exchange:3.13.3-management")
                     .asCompatibleSubstituteFor("rabbitmq");
 
-    // 1️⃣  new container definition
     @Container
     public static RabbitMQContainer rabbitmq = new RabbitMQContainer(RABBIT_IMAGE)
             .withNetwork(network)
             .withNetworkAliases("rabbitmq")
-            /* 2️⃣ raise the memory watermark so the alarm never fires */
-            .withEnv("RABBITMQ_VM_MEMORY_HIGH_WATERMARK", "0.8")           // 80 % of container mem
-            .withEnv("RABBITMQ_VM_MEMORY_HIGH_WATERMARK_PAGING", "0.9")    // optional, extra head-room
-            /* 3️⃣ override the default wait-strategy */
+            .withEnv("RABBITMQ_VM_MEMORY_HIGH_WATERMARK", "0.8")
+            .withEnv("RABBITMQ_VM_MEMORY_HIGH_WATERMARK_PAGING", "0.9")
             .waitingFor(
-                    Wait.forListeningPort()                                    // just wait for 5672/15672 to open
+                    Wait.forListeningPort()
                             .withStartupTimeout(Duration.ofMinutes(5))
             );
 
+    // --- MODIFICATION: Use a single MySQL Container for all services ---
     @Container
-    public static MySQLContainer<?> mysqlUser = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("userservice_db")
+    public static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
+            .withDatabaseName("userservice_db") // Default database
             .withUsername("root")
             .withPassword("superSecret")
             .withNetwork(network)
-            .withNetworkAliases("mysql-user");
-
-    @Container
-    public static MySQLContainer<?> mysqlEvent = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("eventservice_db")
-            .withUsername("root")
-            .withPassword("superSecret")
-            .withNetwork(network)
-            .withNetworkAliases("mysql-event");
-
-    @Container
-    public static MySQLContainer<?> mysqlRsvp = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("rsvpservice_db")
-            .withUsername("root")
-            .withPassword("superSecret")
-            .withNetwork(network)
-            .withNetworkAliases("mysql-rsvp");
+            .withNetworkAliases("mysql")
+            // Script to create the other databases
+            .withInitScript("init-test-dbs.sql");
 
     @Container
     public static GenericContainer<?> userservice = new GenericContainer<>("horizon/userservice")
             .withExposedPorts(8081)
             .withNetwork(network)
-            .dependsOn(mysqlUser, rabbitmq)
-            .withEnv("SPRING_DATASOURCE_URL", "jdbc:mysql://mysql-user:3306/userservice_db")
+            .dependsOn(mysql, rabbitmq)
+            .withEnv("SPRING_DATASOURCE_URL", "jdbc:mysql://mysql:3306/userservice_db")
             .withEnv("SPRING_DATASOURCE_USERNAME", "root")
             .withEnv("SPRING_DATASOURCE_PASSWORD", "superSecret")
             .withEnv("SPRING_RABBITMQ_HOST", "rabbitmq")
             .withEnv("MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE", "health")
             .withEnv("APP_SECURITY_ENABLED", "false")
-            .withEnv("SPRING_JPA_HIBERNATE_DDL_AUTO", "create-drop")
+            .withEnv("SPRING_JPA_HIBERNATE_DDL_AUTO", "update")
             .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(5)));
 
     @Container
     public static GenericContainer<?> eventservice = new GenericContainer<>("horizon/eventservice")
             .withExposedPorts(8082)
             .withNetwork(network)
-            .dependsOn(mysqlEvent, rabbitmq)
-            .withEnv("SPRING_DATASOURCE_URL", "jdbc:mysql://mysql-event:3306/eventservice_db")
+            .dependsOn(mysql, rabbitmq)
+            .withEnv("SPRING_DATASOURCE_URL", "jdbc:mysql://mysql:3306/eventservice_db")
             .withEnv("SPRING_DATASOURCE_USERNAME", "root")
             .withEnv("SPRING_DATASOURCE_PASSWORD", "superSecret")
             .withEnv("SPRING_RABBITMQ_HOST", "rabbitmq")
             .withEnv("MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE", "health")
             .withEnv("APP_SECURITY_ENABLED", "false")
+            .withEnv("SPRING_JPA_HIBERNATE_DDL_AUTO", "update")
             .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(5)));
 
+    // --- CORRECTION: Keep the rsvpservice container for this test ---
     @Container
     public static GenericContainer<?> rsvpservice = new GenericContainer<>("horizon/rsvpservice")
             .withExposedPorts(8084)
             .withNetwork(network)
-            .dependsOn(mysqlRsvp, rabbitmq)
-            .withEnv("SPRING_DATASOURCE_URL", "jdbc:mysql://mysql-rsvp:3306/rsvpservice_db")
+            .dependsOn(mysql, rabbitmq)
+            .withEnv("SPRING_DATASOURCE_URL", "jdbc:mysql://mysql:3306/rsvpservice_db")
             .withEnv("SPRING_DATASOURCE_USERNAME", "root")
             .withEnv("SPRING_DATASOURCE_PASSWORD", "superSecret")
             .withEnv("SPRING_RABBITMQ_HOST", "rabbitmq")
             .withEnv("MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE", "health")
             .withEnv("APP_SECURITY_ENABLED", "false")
+            .withEnv("SPRING_JPA_HIBERNATE_DDL_AUTO", "update")
             .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(5)));
 
 
@@ -129,9 +115,10 @@ class SagaCompensationTest {
     @BeforeAll
     static void setUp() throws SQLException {
         restTemplate = new RestTemplate();
-        eventServiceDbConnection = DriverManager.getConnection(mysqlEvent.getJdbcUrl(), mysqlEvent.getUsername(), mysqlEvent.getPassword());
-        rsvpServiceDbConnection = DriverManager.getConnection(mysqlRsvp.getJdbcUrl(), mysqlRsvp.getUsername(), mysqlRsvp.getPassword());
-        userServiceDbConnection = DriverManager.getConnection(mysqlUser.getJdbcUrl(), mysqlUser.getUsername(), mysqlUser.getPassword());
+        // --- MODIFICATION: Create connections to the different databases in the single MySQL container ---
+        eventServiceDbConnection = DriverManager.getConnection(mysql.getJdbcUrl().replace("userservice_db", "eventservice_db"), mysql.getUsername(), mysql.getPassword());
+        rsvpServiceDbConnection = DriverManager.getConnection(mysql.getJdbcUrl().replace("userservice_db", "rsvpservice_db"), mysql.getUsername(), mysql.getPassword());
+        userServiceDbConnection = DriverManager.getConnection(mysql.getJdbcUrl(), mysql.getUsername(), mysql.getPassword());
     }
 
     @AfterAll
