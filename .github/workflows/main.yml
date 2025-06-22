@@ -213,10 +213,10 @@ jobs:
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ${{ env.REGISTRY }} -u $GITHUB_ACTOR --password-stdin
 
-      - name: Build Keycloak Custom Image
+      - name: Build and Push Keycloak Custom Image
         run: |
           docker buildx create --use
-          docker buildx build --platform linux/amd64 --load -t ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/keycloak:latest ./keycloak
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/keycloak:latest --push ./keycloak
 
       - name: Push Keycloak Image to GHCR
         run: |
