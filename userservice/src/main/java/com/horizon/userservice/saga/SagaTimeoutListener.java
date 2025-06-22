@@ -29,11 +29,8 @@ public class SagaTimeoutListener {
             return;
         }
 
-        if (sagaState.getStatus() == SagaStatus.USER_MARKED_FOR_DELETION) {
-            System.out.println("Saga " + sagaState.getSagaId() + " has timed out. Triggering compensation.");
-            sagaCompletionService.failSaga(sagaState, "Saga timed out");
-        } else {
-            System.out.println("Saga " + sagaState.getSagaId() + " has already completed or failed. Ignoring timeout message.");
-        }
+
+        System.out.println("Saga " + sagaState.getSagaId() + " has timed out. Triggering compensation check.");
+        sagaCompletionService.failSaga(sagaState, "Saga timed out");
     }
 } 
