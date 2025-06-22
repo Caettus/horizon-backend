@@ -1,0 +1,2 @@
+CREATE DATABASE IF NOT EXISTS eventservice_db;
+CREATE DATABASE IF NOT EXISTS rsvpservice_db;

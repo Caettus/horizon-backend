@@ -12,6 +12,14 @@ public class RabbitMQConfig {
     public static final String QUEUE_EVENT_CREATED = "horizon.queue.event.created";
     public static final String ROUTING_KEY_EVENT_CREATED = "event.created";
 
+    // User forgotten event configuration
+    public static final String USERS_EXCHANGE = "horizon.users.exchange";
+    public static final String QUEUE_USER_FORGOTTEN_EVENTS = "horizon.users.forgotten.events";
+    public static final String ROUTING_KEY_USER_FORGOTTEN = "user.forgotten";
+
+    // Saga reply exchange
+    public static final String SAGA_REPLY_EXCHANGE = "saga.replies.exchange";
+
     @Bean
     TopicExchange exchange() {
         return ExchangeBuilder
@@ -33,6 +41,26 @@ public class RabbitMQConfig {
                 .bind(queueEventCreated)
                 .to(exchange)
                 .with(ROUTING_KEY_EVENT_CREATED);
+    }
+
+    @Bean
+    public Queue userForgottenQueue() {
+        return new Queue(QUEUE_USER_FORGOTTEN_EVENTS, true);
+    }
+
+    @Bean
+    public TopicExchange usersExchange() {
+        return new TopicExchange(USERS_EXCHANGE, true, false);
+    }
+
+    @Bean
+    public Binding userForgottenBinding(Queue userForgottenQueue, TopicExchange usersExchange) {
+        return BindingBuilder.bind(userForgottenQueue).to(usersExchange).with(ROUTING_KEY_USER_FORGOTTEN);
+    }
+
+    @Bean
+    DirectExchange sagaReplyExchange() {
+        return new DirectExchange(SAGA_REPLY_EXCHANGE);
     }
 
     @Bean

@@ -14,7 +14,7 @@ public class EventResponseDTO {
     private String category;
     private List<String> tags;
     private boolean isPrivate;
-    private UUID organizerId;
+    private String organizerId;
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
@@ -43,6 +43,6 @@ public class EventResponseDTO {
     public boolean isPrivate() { return isPrivate; }
     public void setPrivate(boolean isPrivate) { this.isPrivate = isPrivate; }
 
-    public UUID getOrganizerId() { return organizerId; }
-    public void setOrganizerId(UUID organizerId) { this.organizerId = organizerId; }
+    public String getOrganizerId() { return organizerId; }
+    public void setOrganizerId(String organizerId) { this.organizerId = organizerId; }
 }

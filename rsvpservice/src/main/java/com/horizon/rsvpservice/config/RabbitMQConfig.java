@@ -1,6 +1,8 @@
 package com.horizon.rsvpservice.config;
 
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,6 +18,13 @@ public class RabbitMQConfig {
     // Routing keys to bind for
     public static final String USER_REGISTERED_ROUTING_KEY = "user.registered";
     public static final String USER_PROFILE_UPDATED_ROUTING_KEY = "user.profile.updated";
+    public static final String USER_FORGOTTEN_ROUTING_KEY = "user.forgotten";
+
+    // Queue for user forgotten events
+    public static final String RSVP_USER_FORGOTTEN_QUEUE_NAME = "horizon.users.forgotten.rsvps";
+
+    // Saga reply exchange
+    public static final String SAGA_REPLY_EXCHANGE = "saga.replies.exchange";
 
     @Bean
     TopicExchange usersExchange() {
@@ -39,6 +48,26 @@ public class RabbitMQConfig {
     @Bean
     Binding userProfileUpdatedBinding(Queue rsvpUserEventsQueue, TopicExchange usersExchange) {
         return BindingBuilder.bind(rsvpUserEventsQueue).to(usersExchange).with(USER_PROFILE_UPDATED_ROUTING_KEY);
+    }
+
+    @Bean
+    Queue rsvpUserForgottenQueue() {
+        return new Queue(RSVP_USER_FORGOTTEN_QUEUE_NAME);
+    }
+
+    @Bean
+    Binding userForgottenBinding(Queue rsvpUserForgottenQueue, TopicExchange usersExchange) {
+        return BindingBuilder.bind(rsvpUserForgottenQueue).to(usersExchange).with(USER_FORGOTTEN_ROUTING_KEY);
+    }
+
+    @Bean
+    DirectExchange sagaReplyExchange() {
+        return new DirectExchange(SAGA_REPLY_EXCHANGE);
+    }
+
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
     }
 
     // Future: If NotificationService is added, it would have a similar configuration for its own queue

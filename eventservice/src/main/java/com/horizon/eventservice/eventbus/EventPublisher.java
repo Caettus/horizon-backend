@@ -4,6 +4,8 @@ import com.horizon.eventservice.model.Event;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class EventPublisher {
     private final RabbitTemplate rabbitTemplate;
@@ -15,7 +17,7 @@ public class EventPublisher {
     public void publishEventCreated(Event event) {
         EventCreatedMessage message = new EventCreatedMessage(
                 event.getId(), event.getTitle(), event.getStartDate(), event.getCreatedAt(),
-                event.getOrganizerId()
+                UUID.fromString(event.getOrganizerId())
         );
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EXCHANGE,

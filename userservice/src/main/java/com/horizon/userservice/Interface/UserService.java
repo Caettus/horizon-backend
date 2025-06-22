@@ -13,6 +13,9 @@ public interface UserService {
     UserResponseDTO createUser(UserCreateDTO dto);
     UserResponseDTO updateUser(int id, UserUpdateDTO dto);
     void deleteUser(int id);
+    void markUserForDeletion(String keycloakId);
+    void completeUserDeletion(String keycloakId);
+    void revertUserDeletion(String keycloakId);
 
     User getUserByKeycloakId(String keycloakId);
     List<User> getUsersByKeycloakIds(List<String> keycloakIds);

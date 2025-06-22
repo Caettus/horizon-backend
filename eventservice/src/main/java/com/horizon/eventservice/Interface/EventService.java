@@ -16,4 +16,5 @@ public interface EventService {
     Event createEvent(EventCreateDTO createDTO);
     Optional<Event> updateEvent(EventUpdateDTO updateDTO);
     void deleteEventById(UUID id);
+    void removeUserFromAllEvents(String userId);
 }
