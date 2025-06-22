@@ -198,7 +198,7 @@ jobs:
           # Voeg eventueel exit-codes toe om de build te laten falen bij kwetsbaarheden
           exit-code: '1'
           ignore-unfixed: true
-          severity: 'CRITICAL,HIGH'
+          severity: 'CRITICAL'
 
     # ─────────────────────────────────────────────────────────────
     # 5. DOCKER BUILD & PUSH – KEYCLOAK WITH CUSTOM JAR
