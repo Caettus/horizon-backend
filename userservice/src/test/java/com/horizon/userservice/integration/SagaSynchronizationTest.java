@@ -74,6 +74,7 @@ class SagaSynchronizationTest {
             .withEnv("SPRING_RABBITMQ_HOST", "rabbitmq")
             .withEnv("MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE", "health")
             .withEnv("APP_SECURITY_ENABLED", "false")
+            .withEnv("SPRING_JPA_HIBERNATE_DDL_AUTO", "create-drop")
             .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(5)));
 
     @Container
@@ -181,11 +182,11 @@ class SagaSynchronizationTest {
     private void verifyUserIsCompletelyDeleted(String keycloakId, UUID eventId) throws SQLException {
         await().atMost(Duration.ofSeconds(60)).until(() -> !eventExists(eventId));
         await().atMost(Duration.ofSeconds(60)).until(() -> !rsvpExistsForUser(keycloakId));
-        await().atMost(Duration.ofSeconds(60)).until(() -> userIsDeactivated(keycloakId));
+        await().atMost(Duration.ofSeconds(60)).until(() -> userIsDeleted(keycloakId));
 
         assertFalse(eventExists(eventId), "Event should be deleted after saga completion.");
         assertFalse(rsvpExistsForUser(keycloakId), "RSVP should be deleted after saga completion.");
-        assertTrue(userIsDeactivated(keycloakId), "User status should be DEACTIVATED after saga completion.");
+        assertTrue(userIsDeleted(keycloakId), "User status should be DELETED after saga completion.");
     }
 
     private boolean eventExists(UUID eventId) throws SQLException {
@@ -204,11 +205,11 @@ class SagaSynchronizationTest {
         }
     }
 
-    private boolean userIsDeactivated(String keycloakId) throws SQLException {
+    private boolean userIsDeleted(String keycloakId) throws SQLException {
         try (var statement = userServiceDbConnection.createStatement()) {
             ResultSet rs = statement.executeQuery("SELECT status FROM users WHERE keycloak_id = '" + keycloakId + "'");
             if (rs.next()) {
-                return "DEACTIVATED".equals(rs.getString("status"));
+                return "DELETED".equals(rs.getString("status"));
             }
             return false;
         }

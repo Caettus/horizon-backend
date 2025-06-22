@@ -96,7 +96,8 @@ public class UserServiceImpl implements UserService {
     public void completeUserDeletion(String keycloakId) {
         User user = userDAL.findByKeycloakId(keycloakId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with keycloakId: " + keycloakId));
-        userDAL.delete(user);
+        user.setStatus(UserStatus.DELETED);
+        userDAL.save(user);
     }
 
     @Override

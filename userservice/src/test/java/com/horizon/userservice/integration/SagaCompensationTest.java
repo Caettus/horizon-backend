@@ -75,6 +75,7 @@ class SagaCompensationTest {
             .withEnv("SPRING_RABBITMQ_HOST", "rabbitmq")
             .withEnv("MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE", "health")
             .withEnv("APP_SECURITY_ENABLED", "false")
+            .withEnv("SPRING_JPA_HIBERNATE_DDL_AUTO", "create-drop")
             .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200).withStartupTimeout(Duration.ofMinutes(5)));
 
     @Container
