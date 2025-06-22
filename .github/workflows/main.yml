@@ -165,6 +165,7 @@ jobs:
             -Dsonar.gradle.skipCompile=true \
             --no-daemon
 
+
   # ─────────────────────────────────────────────────────────────
   # 4. DOCKER BUILD, SCAN & PUSH  (per‑service)
   # ─────────────────────────────────────────────────────────────
@@ -182,22 +183,22 @@ jobs:
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ${{ env.REGISTRY }} -u $GITHUB_ACTOR --password-stdin
 
-      - name: Build Docker image (linux/amd64)
+      # STAP 1: Bouw en push de multi-platform image in één keer
+      - name: Build and Push Docker image
         run: |
           docker buildx create --use
-          docker buildx build --platform linux/amd64 --load -t ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/${{ matrix.service }}:latest ./${{ matrix.service }}
+          docker buildx build --platform linux/amd64,linux/arm64 --push -t ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/${{ matrix.service }}:latest ./${{ matrix.service }}
 
-
-      # -------- Trivy Scan ----------
+      # STAP 2: Draai de Trivy scan op de image in de registry
       - name: Run Trivy image scan
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/${{ matrix.service }}:latest
           format: 'table'
-
-      - name: Push Docker image
-        run: |
-          docker push ${{ env.REGISTRY }}/${{ env.ORG_REPO_PATH }}/${{ matrix.service }}:latest
+          # Voeg eventueel exit-codes toe om de build te laten falen bij kwetsbaarheden
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
 
     # ─────────────────────────────────────────────────────────────
     # 5. DOCKER BUILD & PUSH – KEYCLOAK WITH CUSTOM JAR
