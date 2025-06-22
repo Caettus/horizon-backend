@@ -16,6 +16,7 @@ import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -35,11 +36,25 @@ class SagaCompensationTest {
 
     private static final Network network = Network.newNetwork();
 
+    // 0️⃣  keep this – we already told Testcontainers it’s a RabbitMQ image
+    private static final DockerImageName RABBIT_IMAGE =
+            DockerImageName
+                    .parse("heidiks/rabbitmq-delayed-message-exchange:3.13.3-management")
+                    .asCompatibleSubstituteFor("rabbitmq");
+
+    // 1️⃣  new container definition
     @Container
-    public static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:3.12-management")
+    public static RabbitMQContainer rabbitmq = new RabbitMQContainer(RABBIT_IMAGE)
             .withNetwork(network)
             .withNetworkAliases("rabbitmq")
-            .withPluginsEnabled("rabbitmq_delayed_message_exchange");
+            /* 2️⃣ raise the memory watermark so the alarm never fires */
+            .withEnv("RABBITMQ_VM_MEMORY_HIGH_WATERMARK", "0.8")           // 80 % of container mem
+            .withEnv("RABBITMQ_VM_MEMORY_HIGH_WATERMARK_PAGING", "0.9")    // optional, extra head-room
+            /* 3️⃣ override the default wait-strategy */
+            .waitingFor(
+                    Wait.forListeningPort()                                    // just wait for 5672/15672 to open
+                            .withStartupTimeout(Duration.ofMinutes(5))
+            );
 
     @Container
     public static MySQLContainer<?> mysqlUser = new MySQLContainer<>("mysql:8.0")
