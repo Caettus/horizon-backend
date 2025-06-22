@@ -24,7 +24,7 @@ public class UserSyncGlobalFilter implements GlobalFilter, Ordered {
     private final WebClient.Builder webClientBuilder;
 
 
-    private final String userServiceUri = "http://userservice:8081";
+    private final String userServiceUri = "http://userservice-service:8081";
 
     public UserSyncGlobalFilter(WebClient.Builder webClientBuilder) {
         this.webClientBuilder = webClientBuilder;
