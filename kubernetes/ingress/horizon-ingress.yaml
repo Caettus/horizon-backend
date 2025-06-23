@@ -27,3 +27,26 @@ spec:
                 name: keycloak-service
                 port:
                   number: 8083
+
+    - host: grafana.20.82.232.197.sslip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana-service
+                port:
+                  number: 3000
+
+    - host: prometheus.20.82.232.197.sslip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-service
+                port:
+                  number: 9090
+
