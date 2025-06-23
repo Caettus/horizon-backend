@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/events")
@@ -19,11 +21,19 @@ public class EventsController {
     private EventService eventService;
 
     @GetMapping("/batch")
-    public ResponseEntity<List<EventResponseDTO>> getEventsByIds(@RequestParam("ids") List<UUID> ids) {
-        List<EventResponseDTO> events = eventService.getEventsByIds(ids);
-        if (events.isEmpty()) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<List<EventResponseDTO>> getEventsByIds(@RequestParam("ids") List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
         }
+
+        List<UUID> uuidList = ids.stream()
+                .map(UUID::fromString)
+                .collect(Collectors.toList());
+
+        List<EventResponseDTO> events = eventService.getEventsByIds(uuidList);
+
+        // The original logic returned notFound for empty results, but returning an empty list might be more consistent for a "batch get" operation.
+        // If no events match the given IDs, it's not a "not found" error for the resource endpoint itself.
         return ResponseEntity.ok(events);
     }
 
